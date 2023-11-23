@@ -58,7 +58,7 @@ function creationJoueur()
     $nom = readline();
 
     //Create a new character and save it in the database
-    $player = new Personnage("", $nom, 20, 2, 2, 0, 1, "");
+    $player = new Personnage("", $nom, 200, 20, 10, 0, 1, 3);
     $personnageDAO->createPersonnage($player);
 
     //Get the id of the new character
@@ -140,8 +140,9 @@ function inventaire($player)
     // Import GlobalVariables
     $InventaireDAO = GlobalVariables::$inventaireDAO;
     $inventaire = $InventaireDAO->getInventaireById($player->getId());
-
+    print_r($inventaire);
     if ($inventaire !== null) {
+        // Get objects and weapons directly from $inventaire
         $objetMagiques = $InventaireDAO->getObjetById($inventaire->getId());
         $armesResult = $InventaireDAO->getArmeById($inventaire->getPersonnageId());
     } else {
@@ -166,11 +167,10 @@ function inventaire($player)
         echo $arme->getPointAttaqueBonus() . PHP_EOL;
     }
 
-
     // Display the possibility to equip an object or a weapon
     echo "1. Equiper une arme" . PHP_EOL;
-    echo "2. Utilise un objet" . PHP_EOL;
-    echo "3. Jetter un objet" . PHP_EOL;
+    echo "2. Utiliser un objet" . PHP_EOL;
+    echo "3. Jeter un objet" . PHP_EOL;
     echo "4. Jeter une arme" . PHP_EOL;
     echo "5. Retour" . PHP_EOL . PHP_EOL;
 
@@ -201,6 +201,7 @@ function inventaire($player)
     }
 }
 
+
 // Remove an object from the inventory
 function removeObjetFromInventaire($id)
 {
@@ -215,6 +216,7 @@ function removeArmeFromInventaire($id)
 {
     // Import GlobalVariables
     $InventaireDAO = GlobalVariables::$inventaireDAO;
+    echo "id : " . $id . "\n";
     $choix = readline("Quel arme voulez-vous jeter ? (id de l'arme) : ");
     $InventaireDAO->removeArmeFromInventaire($choix, $id);
 }
@@ -314,8 +316,10 @@ function entrerSalle($player, $nbSalle)
         switch ($choix) {
             case 1:
                 system("clear");
-                if ($salle->getType() === "Bonus") {
+                if ($salle->getType() === "bonus") {
                     trouverTresors($salleIsEnd);
+                } else if ($salle->getType() === "marchant") {
+                    //TODO : MARCHAND
                 } else {
                     combattre($salleIsEnd, $salle, $player);
                 }
@@ -364,6 +368,7 @@ function combattre($salleIsEnd, $salle, $player)
     //Import GlobalVariables
     $salleDAO = GlobalVariables::$salleDAO;
     $monstreDAO = GlobalVariables::$monstreDAO;
+    $personnageDAO = GlobalVariables::$personnageDAO;
 
     //Load the monster(s) for the room
     $monstresIds = $salleDAO->getSalleMonstreById($salle->getId());
@@ -417,12 +422,15 @@ function combattre($salleIsEnd, $salle, $player)
                     //Random monster attack
                     $randomMonster = rand(0, count($monstres) - 1);
 
-                    //Player attack calculation
-                    $playerAttack = $player->getPoints_attaque() * $player->getArmeId()->getPointAttaqueBonus() / 100;
+                    //Get weapon
+                    $armeP = $personnageDAO->getPersonnageWeaponById($player->getId());
+                    $armeM = $monstreDAO->getMonstreWeaponById($monstres[$randomMonster]->getId());
 
+                    //Player attack calculation
+                    $playerAttack = $player->getPoints_attaque() * ($armeP->getPointAttaqueBonus() / 100);
 
                     //Monster attack calculation
-                    $monsterAttack = $monstres[$randomMonster]->getPoints_attaque() * $monstres[$randomMonster]->getArmeId()->getPointAttaqueBonus() / 100;
+                    $monsterAttack = $monstres[$randomMonster]->getPoints_attaque() * ($armeM->getPointAttaqueBonus() / 100);
 
                     //Player take dmg calculation
                     $playerTakeDmg = $playerAttack * $monstres[$randomMonster]->getPoints_defense() / 100;
@@ -432,10 +440,10 @@ function combattre($salleIsEnd, $salle, $player)
 
                     //Fight
                     $player->setPoints_vie($player->getPoints_vie() - $playerTakeDmg);
-                    echo "Vous avez infligé " . $playerAttack . " points de dégats à " . $monstres[$randomMonster]->getNom() . PHP_EOL . PHP_EOL;
+                    echo "Vous avez infligé " . $playerAttack . " points de dégats à " . $monstres[$randomMonster]->getNom() . " avec, " . $armeP->getNom() . PHP_EOL . PHP_EOL;
 
                     $monstres[$randomMonster]->setPoints_vie($monstres[$randomMonster]->getPoints_vie() - $monsterTakeDmg);
-                    echo $monstres[$randomMonster]->getNom() . " vous a infligé " . $monsterAttack . " points de dégats." . PHP_EOL . PHP_EOL;
+                    echo $monstres[$randomMonster]->getNom() . " vous a infligé " . $monsterAttack . " points de dégats avec, " . $armeM->getNom() . PHP_EOL . PHP_EOL;
 
                     //If the monster is dead, remove it from the array
                     if ($monstres[$randomMonster]->getPoints_vie() <= 0) {
