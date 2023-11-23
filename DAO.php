@@ -191,7 +191,7 @@ class InventaireDAO
             $idsString = implode(',', $uniqueObjetIds);
 
             // Use the IN clause in the SQL query to update the rows
-            $req = $this->bdd->prepare("UPDATE inventaire SET objet_id = :objet_id WHERE personnage_id = :personnage_id");
+            $req = $this->bdd->prepare("UPDATE Inventaire SET objet_id = :objet_id WHERE personnage_id = :personnage_id");
             $req->bindParam(':personnage_id', $personnage_id, PDO::PARAM_INT);
             $req->bindParam(':objet_id', $idsString, PDO::PARAM_STR);
             $req->execute();
