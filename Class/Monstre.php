@@ -33,22 +33,22 @@ class Monstre
         return $this->nom;
     }
 
-    public function getPointsVie()
+    public function getPoints_vie()
     {
         return $this->points_vie;
     }
 
-    public function getPointsAttaque()
+    public function getPoints_attaque()
     {
         return $this->points_attaque;
     }
 
-    public function getPointsDefense()
+    public function getPoints_defense()
     {
         return $this->points_defense;
     }
 
-    public function getSalleId()
+    public function getSalle_id()
     {
         return $this->salle_id;
     }
@@ -64,22 +64,22 @@ class Monstre
         $this->nom = $nom;
     }
 
-    public function setPointsVie($points_vie)
+    public function setPoints_vie($points_vie)
     {
         $this->points_vie = $points_vie;
     }
 
-    public function setPointsAttaque($points_attaque)
+    public function setPoints_attaque($points_attaque)
     {
         $this->points_attaque = $points_attaque;
     }
 
-    public function setPointsDefense($points_defense)
+    public function setPoints_defense($points_defense)
     {
         $this->points_defense = $points_defense;
     }
 
-    public function setSalleId($salle_id)
+    public function setSalle_Id($salle_id)
     {
         $this->salle_id = $salle_id;
     }

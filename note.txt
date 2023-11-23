@@ -44,3 +44,18 @@
 - Révision et refactoring du code si nécessaire pour maintenir sa lisibilité et sa maintenabilité.
 
 Chaque étape devrait être abordée progressivement, en commençant par la gestion des personnages, puis en étendant les fonctionnalités selon la progression mentionnée ci-dessus. N'hésitez pas à découper davantage les étapes si certaines parties du projet semblent particulièrement complexes.
+
+
+
+Menue:
+
+1ER : Jouer
+      quitter
+2eme: 
+
+
+
+
+
+
+

@@ -13,6 +13,7 @@ class Salle
         $this->description = $description;
     }
 
+    // Getters
     public function getId()
     {
         return $this->id;
@@ -23,12 +24,12 @@ class Salle
         return $this->type;
     }
 
-
     public function getDescription()
     {
         return $this->description;
     }
 
+    // Setters
     public function setType($type)
     {
         $this->type = $type;

@@ -24,6 +24,7 @@ class Personnage
         $this->niveau = $niveau;
     }
 
+    // Getters
     public function getId()
     {
         return $this->id;
@@ -64,6 +65,7 @@ class Personnage
         $this->nom = $nom;
     }
 
+    // Setters
     public function setPoints_vie($pv)
     {
         $this->points_vie = $pv;
