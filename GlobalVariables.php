@@ -14,7 +14,6 @@ class GlobalVariables
         self::$armeDAO = new ArmeDAO($bdd);
         self::$inventaireDAO = new InventaireDAO($bdd);
         self::$monstreDAO = new MonstreDAO($bdd);
-        self::$objetMagiqueDAO = new ObjetMagiqueDAO($bdd);
         self::$personnageDAO = new PersonnageDAO($bdd);
         self::$salleDAO = new SalleDAO($bdd);
     }

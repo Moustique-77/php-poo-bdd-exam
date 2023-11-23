@@ -79,13 +79,10 @@ DROP TABLE IF EXISTS `Inventaire`;
 CREATE TABLE `Inventaire` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `personnage_id` int(11) DEFAULT NULL,
-  `objet_id` int(11) DEFAULT NULL,
-  `arme_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `personnage_id` (`personnage_id`),
-  KEY `objet_id` (`objet_id`),
-  CONSTRAINT `inventaire_ibfk_1` FOREIGN KEY (`personnage_id`) REFERENCES `Personnages` (`id`),
-  CONSTRAINT `inventaire_ibfk_2` FOREIGN KEY (`objet_id`) REFERENCES `ObjetsMagiques` (`id`)
+  `objet_id` text DEFAULT NULL,
+  `arme_id` text DEFAULT NULL,
+  `taille` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -129,6 +126,30 @@ INSERT INTO `Monstres` VALUES
 (3,'Dragon Noir',200,30,25,1,3),
 (4,'Gobelin',50,10,5,2,2);
 /*!40000 ALTER TABLE `Monstres` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `ObjetsInventaire`
+--
+
+DROP TABLE IF EXISTS `ObjetsInventaire`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ObjetsInventaire` (
+  `inventaire_id` int(11) DEFAULT NULL,
+  `objet_id` int(11) DEFAULT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ObjetsInventaire`
+--
+
+LOCK TABLES `ObjetsInventaire` WRITE;
+/*!40000 ALTER TABLE `ObjetsInventaire` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ObjetsInventaire` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -176,6 +197,7 @@ CREATE TABLE `Personnages` (
   `points_defense` int(11) DEFAULT NULL,
   `experience` int(11) DEFAULT NULL,
   `niveau` int(11) DEFAULT NULL,
+  `arme_equiper_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -227,4 +249,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-11-23 11:09:18
+-- Dump completed on 2023-11-23 14:58:20
