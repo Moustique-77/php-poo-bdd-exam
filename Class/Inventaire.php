@@ -17,7 +17,6 @@ class Inventaire
         $this->arme_id = $arme_id;
         $this->taille = $taille;
     }
-
     //getters
     public function getId()
     {

@@ -12,8 +12,9 @@ class Personnage
     private $points_defense;
     private $experience;
     private $niveau;
+    private $arme_equiper_id;
 
-    public function __construct($id, $nom, $pv, $pa, $pd, $exp, $niveau)
+    public function __construct($id, $nom, $pv, $pa, $pd, $exp, $niveau, $arme_equiper_id)
     {
         $this->id = $id;
         $this->nom = $nom;
@@ -22,6 +23,7 @@ class Personnage
         $this->points_defense = $pd;
         $this->experience = $exp;
         $this->niveau = $niveau;
+        $this->arme_equiper_id = $arme_equiper_id;
     }
 
     // Getters
@@ -60,6 +62,11 @@ class Personnage
         return $this->niveau;
     }
 
+    public function getArme_equiper_id()
+    {
+        return $this->arme_equiper_id;
+    }
+
     public function setNom($nom)
     {
         $this->nom = $nom;
@@ -89,5 +96,10 @@ class Personnage
     public function setNiveau($niveau)
     {
         $this->niveau = $niveau;
+    }
+
+    public function setArme_equiper_id($arme_equiper_id)
+    {
+        $this->arme_equiper_id = $arme_equiper_id;
     }
 }

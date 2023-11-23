@@ -37,13 +37,41 @@ class InventaireDAO
     public function getInventaireById($id)
     {
         try {
-            $req = $this->bdd->prepare('SELECT * FROM inventaire WHERE id = :id');
+            $req = $this->bdd->prepare('SELECT * FROM Inventaire WHERE id = :id');
             $req->bindParam(':id', $id, PDO::PARAM_INT);
             $req->execute();
             $donnees = $req->fetch(PDO::FETCH_ASSOC);
             return new Inventaire($donnees['id'], $donnees['personnage_id'], $donnees['arme_id'], $donnees['objet_id'], $donnees['taille']);
         } catch (Exception $e) {
             die('Erreur lors de la recuperation de l\'inventaire : ' . $e->getMessage());
+        }
+    }
+
+    // Get arme by id
+    public function getArmeById($id)
+    {
+        try {
+            $req = $this->bdd->prepare('SELECT * FROM arme WHERE id = :id');
+            $req->bindParam(':id', $id, PDO::PARAM_INT);
+            $req->execute();
+            $donnees = $req->fetch(PDO::FETCH_ASSOC);
+            return new Arme($donnees['id'], $donnees['nom'], $donnees['niveau_requis'], $donnees['points_attaque_bonus']);
+        } catch (Exception $e) {
+            die('Erreur lors de la recuperation de l\'arme : ' . $e->getMessage());
+        }
+    }
+
+    // Get objet by id
+    public function getObjetById($id)
+    {
+        try {
+            $req = $this->bdd->prepare('SELECT * FROM objet WHERE id = :id');
+            $req->bindParam(':id', $id, PDO::PARAM_INT);
+            $req->execute();
+            $donnees = $req->fetch(PDO::FETCH_ASSOC);
+            return new ObjetMagique($donnees['id'], $donnees['nom'], $donnees['niveau_requis'], $donnees['points_defense_bonus']);
+        } catch (Exception $e) {
+            die('Erreur lors de la recuperation de l\'objet : ' . $e->getMessage());
         }
     }
 
@@ -146,6 +174,52 @@ class PersonnageDAO
         $this->bdd = $bdd;
     }
 
+    // Create personnage
+    public function createPersonnage(Personnage $personnage)
+    {
+        $id = $personnage->getId();
+        $nom = $personnage->getNom();
+        $points_vie = $personnage->getPoints_vie();
+        $points_attaque = $personnage->getPoints_attaque();
+        $points_defense = $personnage->getPoints_defense();
+        $experience = $personnage->getExperience();
+        $niveau = $personnage->getNiveau();
+        $arme_equiper_id = $personnage->getArme_equiper_id();
+
+        try {
+            $req = $this->bdd->prepare('INSERT INTO personnage (
+                id,
+                nom,
+                points_vie,
+                points_attaque,
+                points_defense,
+                experience,
+                niveau, 
+                arme_equiper_id) 
+                VALUES (
+                    :id, 
+                    :nom, 
+                    :points_vie, 
+                    :points_attaque, 
+                    :points_defense, 
+                    :experience, :niveau, 
+                    :arme_equiper_id)');
+
+            $req->bindParam(':id', $id, PDO::PARAM_INT);
+            $req->bindParam(':nom', $nom, PDO::PARAM_STR);
+            $req->bindParam(':points_vie', $points_vie, PDO::PARAM_INT);
+            $req->bindParam(':points_attaque', $points_attaque, PDO::PARAM_INT);
+            $req->bindParam(':points_defense', $points_defense, PDO::PARAM_INT);
+            $req->bindParam(':experience', $experience, PDO::PARAM_INT);
+            $req->bindParam(':niveau', $niveau, PDO::PARAM_INT);
+            $req->bindParam(':arme_equiper_id', $arme_equiper_id, PDO::PARAM_INT);
+
+            $req->execute();
+        } catch (Exception $e) {
+            die('Erreur lors de la creation du personnage : ' . $e->getMessage());
+        }
+    }
+
     // Get personnage by id
     public function getPersonnageById($id)
     {
@@ -156,7 +230,7 @@ class PersonnageDAO
             $req->execute();
 
             $donnees = $req->fetch(PDO::FETCH_ASSOC);
-            return new Personnage($donnees['id'], $donnees['nom'], $donnees['points_vie'], $donnees['points_attaque'], $donnees['points_defense'], $donnees['experience'], $donnees['niveau']);
+            return new Personnage($donnees['id'], $donnees['nom'], $donnees['points_vie'], $donnees['points_attaque'], $donnees['points_defense'], $donnees['experience'], $donnees['niveau'], $donnees['arme_equiper_id']);
         } catch (Exception $e) {
             die('Erreur lors de la recuperation du personnage : ' . $e->getMessage());
         }
@@ -172,9 +246,19 @@ class PersonnageDAO
         $points_defense = $personnage->getPoints_defense();
         $experience = $personnage->getExperience();
         $niveau = $personnage->getNiveau();
+        $arme_equiper_id = $personnage->getArme_equiper_id();
 
         try {
-            $req = $this->bdd->prepare('UPDATE personnage SET nom = :nom, points_vie = :points_vie, points_attaque = :points_attaque, points_defense = :points_defense, experience = :experience, niveau = :niveau WHERE id = :id');
+            $req = $this->bdd->prepare('UPDATE personnage 
+                SET 
+                nom = :nom, 
+                points_vie = :points_vie, 
+                points_attaque = :points_attaque, 
+                points_defense = :points_defense, 
+                experience = :experience, 
+                niveau = :niveau,
+                arme_equiper_id = :arme_equiper_id 
+                WHERE id = :id');
 
             $req->bindParam(':id', $id, PDO::PARAM_INT);
             $req->bindParam(':nom', $nom, PDO::PARAM_STR);
@@ -183,6 +267,7 @@ class PersonnageDAO
             $req->bindParam(':points_defense', $points_defense, PDO::PARAM_INT);
             $req->bindParam(':experience', $experience, PDO::PARAM_INT);
             $req->bindParam(':niveau', $niveau, PDO::PARAM_INT);
+            $req->bindParam(':arme_equiper_id', $arme_equiper_id, PDO::PARAM_INT);
 
             $req->execute();
         } catch (Exception $e) {
