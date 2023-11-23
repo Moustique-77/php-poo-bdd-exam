@@ -150,24 +150,74 @@ function inventaire($player)
     }
 
     // Display inventory
-    echo "Your inventory:" . PHP_EOL . PHP_EOL;
+    echo "Votre inventaire:" . PHP_EOL . PHP_EOL;
 
     // Display objects in the inventory
     echo "Objects: " . PHP_EOL;
     foreach ($objetMagiques as $objet) {
         echo $objet->getNom() . PHP_EOL;
         echo $objet->getEffetSpecial() . PHP_EOL;
-        echo $objet->getEstMaudit() . PHP_EOL;
     }
 
     // Display weapons in the inventory
     echo "Weapons: " . PHP_EOL;
     foreach ($armesResult as $arme) {
-        echo $arme->getNom();
+        echo $arme->getNom() . PHP_EOL;
         echo $arme->getPointAttaqueBonus() . PHP_EOL;
+    }
+
+
+    // Display the possibility to equip an object or a weapon
+    echo "1. Equiper une arme" . PHP_EOL;
+    echo "2. Utilise un objet" . PHP_EOL;
+    echo "3. Jetter un objet" . PHP_EOL;
+    echo "4. Jeter une arme" . PHP_EOL;
+    echo "5. Retour" . PHP_EOL . PHP_EOL;
+
+    $choix = readline("Votre choix: ");
+
+    switch ($choix) {
+        case 1:
+            // equiperArme($player);
+            break;
+        case 2:
+            // utiliserObjet($player);
+            break;
+        case 3:
+            removeObjetFromInventaire($inventaire->getId());
+            inventaire($player);
+            break;
+        case 4:
+            removeArmeFromInventaire($inventaire->getId());
+            inventaire($player);
+            break;
+        case 5:
+            jouer($player);
+            break;
+        default:
+            echo "Erreur de saisie, merci de choisir une option valide." . PHP_EOL . PHP_EOL;
+            inventaire($player);
+            break;
     }
 }
 
+// Remove an object from the inventory
+function removeObjetFromInventaire($id)
+{
+    // Import GlobalVariables
+    $InventaireDAO = GlobalVariables::$inventaireDAO;
+    $choix = readline("Quel objet voulez-vous jeter ? (id de l'objet) : ");
+    $InventaireDAO->removeObjetFromInventaire($choix, $id);
+}
+
+// Remove a weapon from the inventory
+function removeArmeFromInventaire($id)
+{
+    // Import GlobalVariables
+    $InventaireDAO = GlobalVariables::$inventaireDAO;
+    $choix = readline("Quel arme voulez-vous jeter ? (id de l'arme) : ");
+    $InventaireDAO->removeArmeFromInventaire($choix, $id);
+}
 
 
 function entrerDonjon($player)
@@ -207,7 +257,7 @@ function entrerDonjon($player)
     switch ($choix) {
         case 1:
             system("clear");
-            entrerSalle($player);
+            entrerSalle($player, $nbSalle);
             break;
         case 2:
             system("clear");
@@ -227,7 +277,7 @@ function entrerDonjon($player)
     }
 }
 
-function entrerSalle($player)
+function entrerSalle($player, $nbSalle)
 {
     //Import GlobalVariables
     $salleDAO = GlobalVariables::$salleDAO;
@@ -284,13 +334,28 @@ function entrerSalle($player)
             default:
                 system("clear");
                 echo "Erreur de saisie, merci de choisir une option valide." . PHP_EOL . PHP_EOL;
-                entrerSalle($player);
+                entrerSalle($player, $nbSalle);
                 break;
         }
     }
 
-    //TODO : END OF THE ROOM
+    //If the room is finished, go to the next room
+    if ($salleIsEnd === true) {
+        echo "Vous avez fini la salle : " . $salle->getType() . " !" . PHP_EOL . PHP_EOL;
+        $nbSalle--;
+        echo "Appuyez sur entrée pour continuer..." . PHP_EOL;
+        readline();
+        entrerSalle($player, $nbSalle);
+    }
 
+    //If the player finished all the rooms, he win the game
+    if ($nbSalle === 0) {
+        echo "Félicitation ! Vous avez fini le donjon !" . PHP_EOL . PHP_EOL;
+        echo "Merci d'avoir jouer !" . PHP_EOL . PHP_EOL;
+        echo "Appuyez sur entrée pour quitter..." . PHP_EOL;
+        readline();
+        exit();
+    }
 }
 
 //Fight against the monster in the current room
@@ -321,21 +386,97 @@ function combattre($salleIsEnd, $salle, $player)
         foreach ($monstres as $monstre) {
             echo "- " . $monstre->getNom() . " avec " . $monstre->getPoints_vie() . " points de vie." . PHP_EOL . PHP_EOL;
         }
+
+        echo "Appuyez sur entrée pour commencer le combat..." . PHP_EOL;
+        readline();
+        system("clear");
+
+        //While the player is alive and there is still monsters in the room
+        while ($player->getPoints_vie() > 0 && count($monstres) > 0) {
+            //Display the player life
+            echo "Vous avez " . $player->getPoints_vie() . " points de vie." . PHP_EOL . PHP_EOL;
+
+            //Display the monsters life
+            echo "Il reste " . count($monstres) . " monstre(s) en vie." . PHP_EOL . PHP_EOL;
+            foreach ($monstres as $monstre) {
+                echo "- " . $monstre->getNom() . " avec " . $monstre->getPoints_vie() . " points de vie." . PHP_EOL . PHP_EOL;
+            }
+
+            //Display the player options
+            echo "Que voulez-vous faire ?" . PHP_EOL . PHP_EOL;
+            echo "1. Attaquer" . PHP_EOL;
+            echo "2. Ouvrir votre inventaire" . PHP_EOL;
+            echo "3. Fuir" . PHP_EOL . PHP_EOL;
+
+            $choix = readline("Votre choix: ");
+
+            switch ($choix) {
+                case 1:
+                    system("clear");
+
+                    //Random monster attack
+                    $randomMonster = rand(0, count($monstres) - 1);
+
+                    //Player attack calculation
+                    $playerAttack = $player->getPoints_attaque() * $player->getArmeId()->getPointAttaqueBonus() / 100;
+
+
+                    //Monster attack calculation
+                    $monsterAttack = $monstres[$randomMonster]->getPoints_attaque() * $monstres[$randomMonster]->getArmeId()->getPointAttaqueBonus() / 100;
+
+                    //Player take dmg calculation
+                    $playerTakeDmg = $playerAttack * $monstres[$randomMonster]->getPoints_defense() / 100;
+
+                    //Monster take dmg calculation
+                    $monsterTakeDmg = $monsterAttack * $player->getPoints_defense() / 100;
+
+                    //Fight
+                    $player->setPoints_vie($player->getPoints_vie() - $playerTakeDmg);
+                    echo "Vous avez infligé " . $playerAttack . " points de dégats à " . $monstres[$randomMonster]->getNom() . PHP_EOL . PHP_EOL;
+
+                    $monstres[$randomMonster]->setPoints_vie($monstres[$randomMonster]->getPoints_vie() - $monsterTakeDmg);
+                    echo $monstres[$randomMonster]->getNom() . " vous a infligé " . $monsterAttack . " points de dégats." . PHP_EOL . PHP_EOL;
+
+                    //If the monster is dead, remove it from the array
+                    if ($monstres[$randomMonster]->getPoints_vie() <= 0) {
+                        echo $monstres[$randomMonster]->getNom() . " est mort !" . PHP_EOL . PHP_EOL;
+                        array_splice($monstres, $randomMonster, 1);
+                    }
+
+                    echo "Appuyez sur entrée pour continuer le combat..." . PHP_EOL;
+                    readline();
+
+                    break;
+                case 2:
+                    system("clear");
+                    inventaire($player);
+                    break;
+                case 3:
+                    system("clear");
+                    echo "Vous avez fuit le combat !" . PHP_EOL . PHP_EOL;
+                    echo "Appuyez sur entrée pour revenir au menu principal..." . PHP_EOL;
+                    readline();
+                    jouer($player);
+                    break;
+                default:
+                    system("clear");
+                    echo "Erreur de saisie, merci de choisir une option valide." . PHP_EOL . PHP_EOL;
+                    combattre($salleIsEnd, $salle, $player);
+                    break;
+            }
+        }
     } else {
         echo "Vous êtes mort !" . PHP_EOL . PHP_EOL;
         echo "Appuyez sur entrée pour revenir au menu principal..." . PHP_EOL;
         readline();
-        jouer($player);
+        $salleIsEnd = true;
+        return $salleIsEnd;
     }
-
-
-
-    //LOGIQUE DE JEU
-
-    //If the player kill the monster, he can go to the next room
-    //If the player is alive, he can go to the next room
-    //If the player is dead, display the game over screen
 }
+
+
+
+
 
 //If the player is lucky, he get an object, else, the room is finished
 function trouverTresors($salleIsEnd)

@@ -207,11 +207,6 @@ class InventaireDAO
             // Fetch the existing weapon IDs from the database
             $existingArmeIds = $this->getArmeById($personnage_id);
 
-            // Get the id of all weapons
-            $existingArmeIds = array_map(function ($arme) {
-                return $arme->getId();
-            }, $existingArmeIds);
-
             // Remove the specified weapon ID from the array
             $updatedArmeIds = array_diff($existingArmeIds, [$arme_id]);
 
@@ -227,6 +222,7 @@ class InventaireDAO
             die('Erreur lors de la suppression de l\'arme de l\'inventaire : ' . $e->getMessage());
         }
     }
+
 
     // Remove object from inventory
     public function removeObjetFromInventaire($objet_id, $personnage_id)
