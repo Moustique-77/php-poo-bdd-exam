@@ -104,6 +104,10 @@ function jouer($player)
         case 4:
             echo "A bientot !";
             exit();
+        case 5:
+            system("clear");
+
+            ajouterArme($player);
         default:
             echo "Erreur de saisie, merci de choisir une option valide." . PHP_EOL . PHP_EOL;
             jouer($player);
@@ -129,12 +133,10 @@ function statistiques($player)
 
 function inventaire($player)
 {
-    print_r($player);
     //Import GlobalVariables
     $InventaireDAO = GlobalVariables::$inventaireDAO;
 
     $inventaire = $InventaireDAO->getInventaireById($player->getId());
-    print_r($inventaire);
     if ($inventaire !== null) {
         $objetMagique = $InventaireDAO->getObjetById($inventaire->getId());
         $arme = $InventaireDAO->getArmeById($inventaire->getId());
@@ -228,11 +230,30 @@ function entrerSalle($player)
 {
     //Import GlobalVariables
     $salleDAO = GlobalVariables::$salleDAO;
+    $monstreDAO = GlobalVariables::$monstreDAO;
 
-    //Load all the rooms
-    $salles = $salleDAO->getAllSalle();
+    //Load all the rooms and monsters
+
 }
 
+function ajouterArme($player)
+{
+    //Import GlobalVariables
+    $inventaireDAO = GlobalVariables::$inventaireDAO;
+
+    echo "Sélectionner le nombre d'arme à ajouter à votre inventaire : " . PHP_EOL;
+    $nbrArme = readline("Votre choix: ");
+
+    // Initialize the $armes array
+    $armes = [];
+
+    for ($i = 0; $i < $nbrArme; $i++) {
+        $idArme = readline("Saisir l'id de l'arme à ajouter : ");
+        array_push($armes, $idArme);
+    }
+
+    $inventaireDAO->addArmeToInventaire($armes, $player->getId());
+}
 
 
 

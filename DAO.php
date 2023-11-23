@@ -1,28 +1,5 @@
 <?php
 
-class ArmeDAO
-{
-    private $bdd;
-
-    public function __construct($bdd)
-    {
-        $this->bdd = $bdd;
-    }
-
-    // Get arme by id
-    public function getArmeById($id)
-    {
-        try {
-            $req = $this->bdd->prepare('SELECT * FROM arme WHERE id = :id');
-            $req->bindParam(':id', $id, PDO::PARAM_INT);
-            $req->execute();
-            $donnees = $req->fetch(PDO::FETCH_ASSOC);
-            return new Arme($donnees['id'], $donnees['nom'], $donnees['niveau_  requis'], $donnees['points_attaque_bonus']);
-        } catch (Exception $e) {
-            die('Erreur lors de la recuperation de l\'arme : ' . $e->getMessage());
-        }
-    }
-}
 
 class InventaireDAO
 {
@@ -82,7 +59,7 @@ class InventaireDAO
                 A.niveau_requis,
                 A.points_attaque_bonus
                 FROM Inventaire I
-                JOIN Arme A ON I.arme_id = A.id
+                JOIN Armes A ON I.arme_id = A.id
                 WHERE I.personnage_id = :personnage_id
             ');
 
@@ -158,6 +135,33 @@ class InventaireDAO
             $req->execute();
         } catch (Exception $e) {
             die('Erreur lors de la modification de l\'inventaire : ' . $e->getMessage());
+        }
+    }
+
+    // Add arme to inventaire
+    public function addArmeToInventaire($arme_ids, $personnage_id)
+    {
+        try {
+            // Create a comma-separated string of arme_ids
+            $idsString = implode(',', $arme_ids);
+
+            // Use the IN clause in the SQL query to update multiple rows
+            $req = $this->bdd->prepare("UPDATE inventaire SET arme_id = NULL WHERE personnage_id = :personnage_id");
+            $req->bindParam(':personnage_id', $personnage_id, PDO::PARAM_INT);
+            $req->execute();
+
+            $req = $this->bdd->prepare("UPDATE inventaire SET arme_id = :arme_id WHERE id IN ($idsString) AND personnage_id = :personnage_id");
+            $req->bindParam(':personnage_id', $personnage_id, PDO::PARAM_INT);
+
+            // Bind weapon IDs
+            foreach ($arme_ids as $key => $value) {
+                $req->bindParam(":arme_id_$key", $value, PDO::PARAM_INT);
+            }
+
+            // Execute the query
+            $req->execute();
+        } catch (Exception $e) {
+            die('Erreur lors de l\'ajout de l\'arme à l\'inventaire : ' . $e->getMessage());
         }
     }
 }
@@ -436,6 +440,27 @@ class SalleDAO
             return $donnees['COUNT(*)'];
         } catch (Exception $e) {
             die('Erreur lors de la recuperation du nombre de salle : ' . $e->getMessage());
+        }
+    }
+
+    // Get ALL salle info's by id (monstre, salle, arme)
+    public function getSalleInfoById($id)
+    {
+        try {
+            $req = $this->bdd->prepare('SELECT Salles.id AS salle_id, Salles.type AS type_salle, GROUP_CONCAT(Monstres.nom SEPARATOR ', ') AS monstres_present
+            FROM Salles
+            LEFT JOIN Monstres ON Salles.id = Monstres.salle_id
+            WHERE Salles.id = :id
+            ');
+
+            $req->bindParam(':id', $id, PDO::PARAM_INT);
+
+            $req->execute();
+
+            $donnees = $req->fetch(PDO::FETCH_ASSOC);
+            return;
+        } catch (Exception $e) {
+            die('Erreur lors de la recuperation de la salle : ' . $e->getMessage());
         }
     }
 }
