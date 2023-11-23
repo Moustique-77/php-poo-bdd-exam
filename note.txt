@@ -1,0 +1,46 @@
+### Feuille de route du Projet :
+
+#### Étape 1 : Gestion des Personnages
+- **1.1 Création de la Classe Personnage**
+  - Attributs : nom, points de vie (PV), points d'attaque (PA), points de défense (PD), expérience, niveau, etc.
+  - Méthodes pour la gestion des attributs, l'évolution des compétences avec le niveau, équipement des armes, etc.
+
+#### Étape 2 : Gestion des Salles
+- **2.1 Extension de la Classe Salle**
+  - Intégration des salles spéciales avec différentes fonctionnalités (énigmes, pièges, marchands, etc.)
+  - Implémentation de la navigation entre les salles et de la mécanique pour quitter le jeu ou explorer le donjon.
+
+#### Étape 3 : Gestion des Combats
+- **3.1 Mécanisme de Combat**
+  - Intégration de la possibilité d'affronter des monstres spéciaux dans chaque salle avec des statistiques plus puissantes.
+  - Résolution des combats et détermination du vainqueur.
+
+#### Étape 4 : Gestion du Butin
+- **4.1 Diversification du Butin**
+  - Création d'une variété d'objets magiques avec des effets spéciaux.
+  - Gestion des objets maudits ayant des effets négatifs sur le personnage.
+
+#### Étape 5 : Gestion de la Victoire et de la Défaite
+- **5.1 Condition de Victoire/Défaite**
+  - Définition des conditions de victoire ou de défaite après chaque combat.
+  - Attribution de l'expérience aux personnages gagnants.
+
+#### Étape 6 : Sauvegarde dans la Base de Données
+- **6.1 Utilisation de MySQL pour la Sauvegarde**
+  - Création d'une structure de base de données pour stocker les informations des personnages, compétences débloquées, inventaire, armes, etc.
+  - Implémentation de mécanismes de sauvegarde et de récupération des données dans la base de données.
+
+#### Étape 7 : Système de Sauvegarde
+- **7.1 Implémentation d'un Système de Sauvegarde**
+  - Création d'un mécanisme permettant aux utilisateurs de sauvegarder et de reprendre le jeu à partir du point où ils se sont arrêtés.
+
+#### Étape 8 : Documentation et Commentaires
+- **8.1 Commentaires et Documentation**
+  - Commenter abondamment le code pour expliquer le rôle de chaque classe, méthode et variable. Documenter le fonctionnement global du jeu.
+
+### Considérations importantes :
+- Tests réguliers pour s'assurer du bon fonctionnement de chaque fonctionnalité ajoutée.
+- Utilisation de bonnes pratiques de développement pour assurer la sécurité et la robustesse du jeu.
+- Révision et refactoring du code si nécessaire pour maintenir sa lisibilité et sa maintenabilité.
+
+Chaque étape devrait être abordée progressivement, en commençant par la gestion des personnages, puis en étendant les fonctionnalités selon la progression mentionnée ci-dessus. N'hésitez pas à découper davantage les étapes si certaines parties du projet semblent particulièrement complexes.
