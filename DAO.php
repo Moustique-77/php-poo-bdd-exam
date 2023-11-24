@@ -98,7 +98,6 @@ class InventaireDAO
             $req->execute();
 
             $donnees = $req->fetch(PDO::FETCH_ASSOC);
-            var_dump($donnees);
 
             // Check if the values are not null before using explode
             $arme_id = isset($donnees['arme_id']) ? explode(',', $donnees['arme_id']) : [];

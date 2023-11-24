@@ -114,20 +114,13 @@ Menue:
         fuire -> 3
 
 
-DONE :
-
-- Dans salle bonus -> ajout de l'items dans l'inventaire du joueur (Enzo)
 
 DOING : 
 
-- Charger la partie (teo)
-
 - Drop items après combat (Enzo)
-
-URGENT : 
 
 - Dans salle piege -> ajout malus au joueur (Enzo)
 
-MOYEN : 
+AUTRE :
 
 - Equilibrage global du jeu (Enzo & Téo)

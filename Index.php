@@ -276,8 +276,6 @@ function checkInInventaire($player, $choix)
     //convert string to array
     $armes = explode(",", $armes);
 
-    var_dump($armes);
-
     // Check if the player has the weapon in the array of weapon IDs
     if (in_array($choix, $armes)) {
         return true;
@@ -366,16 +364,14 @@ function entrerSalle($player, $nbSalle)
         if ($nbSalle == 0) {
             $salleIsEnd = true;
             echo "Félicitation ! Vous avez fini le donjon !" . PHP_EOL . PHP_EOL;
-            echo "Merci d'avoir jouer !" . PHP_EOL . PHP_EOL;
-            echo "Appuyez sur entrée pour quitter..." . PHP_EOL;
+            echo "Appuyez sur entrée pour aller au prochain donjon..." . PHP_EOL;
             readline();
+            jouer($player);
             exit();
         }
 
         //Display the room
         echo "Il vous reste " . $nbSalle . " salle(s) à finir. Vous êtes dans une salle de type " . $salle->getType() . ", " . $salle->getDescription() . PHP_EOL . PHP_EOL;
-
-
 
         echo "Que voulez-vous faire ?" . PHP_EOL . PHP_EOL;
 
@@ -436,6 +432,7 @@ function combattre($salleIsEnd, $salle, $player)
     $personnageDAO = GlobalVariables::$personnageDAO;
     $armeDAO = GlobalVariables::$armeDAO;
     $objetDAO = GlobalVariables::$objetDAO;
+    $inventaireDAO = GlobalVariables::$inventaireDAO;
 
     //Load the monster(s) for the room
     $monstresIds = $salleDAO->getSalleMonstreById($salle->getId());
@@ -485,7 +482,6 @@ function combattre($salleIsEnd, $salle, $player)
             switch ($choix) {
                 case 1:
                     system("clear");
-
                     //Random monster attack
                     $randomMonster = rand(0, count($monstres) - 1);
 
@@ -496,6 +492,15 @@ function combattre($salleIsEnd, $salle, $player)
                     //Player attack calculation
                     $playerAttack = $player->getPoints_attaque() * ($armeP->getPointAttaqueBonus());
 
+                    if ($salle->getType() === "piege") {
+                        $takepiege = rand(0, 1);
+                        if ($takepiege === 1) {
+                            $player->setPoints_vie($player->getPoints_vie() - 40);
+                            echo "Vous avez êtes tombé dans un piege, vous perdez 40 points de vie !" . PHP_EOL . PHP_EOL;
+                        } else {
+                            echo "Vous avez évité le piege !" . PHP_EOL . PHP_EOL;
+                        }
+                    }
                     //Monster attack calculation
                     $monsterAttack = $monstres[$randomMonster]->getPoints_attaque() * ($armeM->getPointAttaqueBonus());
 
@@ -532,27 +537,31 @@ function combattre($salleIsEnd, $salle, $player)
                         }
 
                         //Random drop of an object or a weapon
-                        $luck = rand(1, 3);
+                        $luck = rand(1, 2);
                         if ($luck === 1) {
                             $weaponOrObject = rand(1, 2);
                             if ($weaponOrObject === 1) {
                                 $itemAleatoire = (rand(1, 5));
-                                $inventaire = $personnageDAO->getPersonnageInventaireById($player->getId());
-                                if ($personnageDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
+                                $inventaire = $inventaireDAO->getInventaireById($player->getId());
+                                if ($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
                                     // Add the item to the player inventory
-                                    $personnageDAO->addArmeToInventaire([$itemAleatoire], $player->getId());
+                                    $inventaireDAO->addArmeToInventaire([$itemAleatoire], $player->getId());
 
-                                    echo "Vous avez trouvé : " . $armeDAO->getArmeById($itemAleatoire) . PHP_EOL . PHP_EOL;
+                                    // Get the details of the found item from the object DAO
+                                    $foundItem = $objetDAO->getObjetById($itemAleatoire);
+
+                                    // Display details of the found item
+                                    echo "Vous avez trouvé : " . $foundItem->getNom() . " avec " . $foundItem->getPointAttaqueBonus() . PHP_EOL . PHP_EOL;
                                 } else {
                                     echo "Votre inventaire est plein ! Vous ne pouvez pas prendre cet objet !" . PHP_EOL;
                                     readline("Appuyez sur entrée pour revenir au menu...");
                                 }
                             } else {
                                 $itemAleatoire = (rand(1, 5));
-                                $inventaire = $personnageDAO->getPersonnageInventaireById($player->getId());
-                                if ($personnageDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
+                                $inventaire = $inventaireDAO->getInventaireById($player->getId());
+                                if ($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
                                     // Add the item to the player inventory
-                                    $personnageDAO->addObjetToInventaire([$itemAleatoire], $player->getId());
+                                    $inventaireDAO->addObjetToInventaire([$itemAleatoire], $player->getId());
 
                                     echo "Vous avez trouvé : " . $objetDAO->getObjetById($itemAleatoire) . PHP_EOL . PHP_EOL;
                                 } else {
@@ -613,7 +622,7 @@ function trouverTresors($salleIsEnd, $player)
     system("clear");
 
     //Random numbre to get a object or not
-    $luck = rand(1, 3);
+    $luck = rand(1, 2);
 
     //If the player is lucky, he get an object
     if ($luck === 1) {
@@ -633,7 +642,11 @@ function trouverTresors($salleIsEnd, $player)
                 // Add the item to the player inventory
                 $inventaireDAO->addArmeToInventaire([$itemAleatoire], $player->getId());
 
-                echo "Vous avez trouvé : " . $armeDAO->getArmeById($itemAleatoire) . PHP_EOL . PHP_EOL;
+                // Get the details of the found item from the object DAO
+                $foundItem = $armeDAO->getArmeById($itemAleatoire);
+
+                // Display details of the found item
+                echo "Vous avez trouvé : " . $foundItem->getNom() . " avec  " . $foundItem->getPointAttaqueBonus() . PHP_EOL . PHP_EOL;
                 readline();
                 $salleIsEnd = true;
                 return $salleIsEnd;
@@ -648,14 +661,18 @@ function trouverTresors($salleIsEnd, $player)
             echo "Vous avez trouvé un objet magique !" . PHP_EOL . PHP_EOL;
 
             //Get random object
-            $itemAleatoire = (rand(1, 5));
+            $itemAleatoire = (rand(1, 4));
 
             $inventaire = $inventaireDAO->getInventaireById($player->getId());
             if ($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
                 // Add the item to the player inventory
                 $inventaireDAO->addObjetToInventaire([$itemAleatoire], $player->getId());
 
-                echo "Vous avez trouvé : " . $objetDAO->getObjetById($itemAleatoire) . PHP_EOL . PHP_EOL;
+                // Get the details of the found item from the object DAO
+                $foundItem = $objetDAO->getObjetById($itemAleatoire);
+
+                // Display details of the found item
+                echo "Vous avez trouvé : " . $foundItem->getNom() . " - " . $foundItem->getEffetSpecial() . PHP_EOL . PHP_EOL;
                 readline();
                 $salleIsEnd = true;
                 return $salleIsEnd;
@@ -940,7 +957,6 @@ function utiliserObjet($player, $objet_id)
     $objetDAO = GlobalVariables::$objetDAO;  // Correct variable name
     // Use $objetDAO instead of $inventaireDAO
     $objet = $objetDAO->getObjetById($objet_id);
-    var_dump($objet);
     if ($objet) {
         switch ($objet->getTypes()) {
             case 'defense':
