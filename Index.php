@@ -114,9 +114,11 @@ function jouer($player)
             exit();
         case 5:
             system("clear");
-
+            $inventaireDAO = GlobalVariables::$inventaireDAO;
             ajouterArme($player);
             ajouterObjetMagique($player);
+            jouer($player);
+            break;
         default:
             echo "Erreur de saisie, merci de choisir une option valide." . PHP_EOL . PHP_EOL;
             jouer($player);
@@ -200,8 +202,10 @@ function inventaire($player)
             inventaire($player);
             break;
         case 4:
+            
             removeArme($inventaire->getPersonnageId());
             inventaire($player);
+            
             break;
         case 5:
             jouer($player);
@@ -737,33 +741,52 @@ function ajouterArme($player)
 {
     //Import GlobalVariables
     $inventaireDAO = GlobalVariables::$inventaireDAO;
+    $inventaire = $inventaireDAO->getInventaireById($player->getId());  
+    echo $inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId());
+    if($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId())< $inventaire->getTaille()){
 
-    echo "Sélectionner le nombre d'arme à ajouter à votre inventaire : " . PHP_EOL;
+        $inventaire = $inventaireDAO->getInventaireById($player->getId());
 
-    // Initialize the $armes array
-    $armes = [];
+    
+        // Initialize the $armes array
+        $armes = [];
+    
+        $idArme = readline("Saisir l'id de l'arme à ajouter : ");
+        array_push($armes, $idArme);
+    
+    
+        $inventaireDAO->addArmeToInventaire($armes, $player->getId());
 
-    $idArme = readline("Saisir l'id de l'arme à ajouter : ");
-    array_push($armes, $idArme);
+    }
+    else{
+        echo "Votre inventaire est plein ! Vous ne pouvez pas ajouter d'arme !" . PHP_EOL;
+        readline("Appuyez sur entrée pour revenir au menu...");
+    }
 
-
-    $inventaireDAO->addArmeToInventaire($armes, $player->getId());
 }
 
 function ajouterObjetMagique($player)
 {
     //Import GlobalVariables
-    $inventaireDAO = GlobalVariables::$inventaireDAO;
+    $inventaireDAO = GlobalVariables::$inventaireDAO; 
+    $inventaire = $inventaireDAO->getInventaireById($player->getId());  
+    echo $inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId());
+    if($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId())< $inventaire->getTaille()){
 
-    echo "Sélectionner le nombre d'objet magique à ajouter à votre inventaire : " . PHP_EOL;
-
-    // Initialize the $objets array
-    $objets = [];
-
-    $idObjet = readline("Saisir l'id de l'objet magique à ajouter : ");
-    array_push($objets, $idObjet);
-
-    $inventaireDAO->addObjetToInventaire($objets, $player->getId());
+        // Initialize the $objets array
+        $objets = [];
+    
+        $idObjet = readline("Saisir l'id de l'objet magique à ajouter : ");
+        array_push($objets, $idObjet);
+    
+        $inventaireDAO->addObjetToInventaire($objets, $player->getId());
+    
+    }
+    else{
+        echo "Votre inventaire est plein ! Vous ne pouvez pas ajouter d'objet !" . PHP_EOL;
+        readline("Appuyez sur entrée pour revenir au menu...");
+    }
+   
 }
 
 
