@@ -561,7 +561,7 @@ class MonstreDAO
         }
     }
 }
-class ObjetDAO
+class objetDAO
 {
     private $bdd;
 
