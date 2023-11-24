@@ -618,7 +618,7 @@ function marchand($player, $salleIsEnd)
                 }
 
                 //Get Random Item of player inventory
-                $randomItem = rand(0, count($items) - 1);
+                $randomItem = rand(0,);
 
                 echo "Je te propose d'échanger ton item : " . " contre un de mes items." . PHP_EOL . PHP_EOL;
 
