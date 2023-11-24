@@ -195,7 +195,8 @@ function inventaire($player)
             equipArme($player);
             break;
         case 2:
-            // utiliserObjet($player);
+            readline("Quel objet voulez-vous utiliser ? (id de l'objet) : ");
+            utiliserObjet($player,$choix);
             break;
         case 3:
             removeObjetFromInventaire($inventaire->getPersonnageId());
@@ -788,6 +789,32 @@ function ajouterObjetMagique($player)
         readline("Appuyez sur entrée pour revenir au menu...");
     }
    
+}
+
+function utiliserObjet($player, $objet_id){
+    //Import GlobalVariables
+    $personnageDAO = GlobalVariables::$personnageDAO;
+    $objetDAO = GlobalVariables::$objetDAO;
+    $objet = $inventaireDAO->getObjetById($objet_id);
+
+    switch($objet->getTypes()){
+        case 'defense':
+            $player->setDefense($player->getDefense() + $objet->valeur());
+            $personnageDAO->modifyPersonnage($player);
+            break;
+        case 'attaque':
+            $player->setAttaque($player->getAttaque() + $objet->valeur());
+            $personnageDAO->modifyPersonnage($player);
+            break;
+        case 'vie':
+            $player->setVie($player->getVie() + $objet->getVie());
+            $personnageDAO->modifyPersonnage($player);
+            break;
+        default:
+            echo "Erreur : Type d'objet invalide." . PHP_EOL;
+            break;
+
+    }
 }
 
 

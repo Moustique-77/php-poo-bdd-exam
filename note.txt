@@ -122,8 +122,6 @@ DOING :
 
 - marchands (Enzo)
 
-- check max objet dans l'inventaire (teo)
-
 - fonctionnalité des items (Téo)
 
 TO DO

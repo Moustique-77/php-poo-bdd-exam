@@ -516,7 +516,29 @@ class MonstreDAO
         }
     }
 }
+class objetDAO{
+    private $bdd;
 
+    public function __construct($bdd)
+    {
+        $this->bdd = $bdd;
+    }
+
+    // Get objet by id
+
+    public function getObjetById($id)
+    {
+        try {
+            $req = $this->bdd->prepare('SELECT * FROM objets WHERE id = :id');
+            $req->bindParam(':id', $id, PDO::PARAM_INT);
+            $req->execute();
+            $donnees = $req->fetch(PDO::FETCH_ASSOC);
+            return new Objet($donnees['id'], $donnees['nom'], $donnees['points_vie_bonus'], $donnees['points_attaque_bonus'], $donnees['points_defense_bonus'], $donnees['salle_id']);
+        } catch (Exception $e) {
+            die('Erreur lors de la recuperation de l\'objet : ' . $e->getMessage());
+        }
+    }
+}
 class PersonnageDAO
 {
     private $bdd;
