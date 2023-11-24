@@ -237,28 +237,61 @@ function equipArme($player)
 {
     // Import GlobalVariables
     $personnageDAO = GlobalVariables::$personnageDAO;
-    $choix = readline("Quel arme voulez-vous équiper ? (id de l'arme) : ");
-    // if(){
-    //     $player->setArme_equiper_id($choix);
-    //     echo $player->getArme_equiper_id();
-    //     $personnageDAO->modifyPersonnage($player);
-    //     inventaire($player);
-    // }
+    $choix = readline("Quelle arme souhaiter vous équiper (arme id): ");
+    
+    // Check if the weapon is in the player's inventory and if the player meets the required level
+    if(checkInInventaire($player, $choix)){
+
+        if(checkNiveauRequis($player, $choix)){
+            $player->setArme_equiper_id($choix);
+            echo $player->getArme_equiper_id();
+            $personnageDAO->modifyPersonnage($player);
+            inventaire($player);
+        }
+        else{
+            echo "Vous n'avez le niveaux requis pour équiper cette arme" . PHP_EOL;
+            inventaire($player);
+        }
+    }
+    else{
+        echo "Vous n'avez pas cette arme dans votre inventaire." . PHP_EOL;
+        inventaire($player);
+    }
 }
 
-function checkNiveauRequis($player)
+// Check if the player's level meets the required level to equip a weapon
+function checkNiveauRequis($player, $choix)
 {
-    $personnageDAO = GlobalVariables::$personnageDAO;
     $armeDAO = GlobalVariables::$armeDAO;
 
-    $arme = $armeDAO->getPersonnageWeaponById($player->getId());
-    $arme->getNiveauRequis($player);
-    if ($player->getNiveau() >= 5) {
+    $arme = $armeDAO->getArmeById($choix);
+    if ($player->getNiveau() >= $arme->getNiveauRequis($player)) {
         return true;
     } else {
         return false;
     }
 }
+
+// Check if a weapon is in the player's inventory
+function checkInInventaire($player, $choix)
+{
+    $InventaireDAO = GlobalVariables::$inventaireDAO;
+    $inventaire = $InventaireDAO->getInventaireById($player->getId());
+    $armes = $inventaire->getArmeId();
+
+    //convert string to array
+    $armes = explode(",", $armes);
+
+    var_dump($armes);
+
+    // Check if the player has the weapon in the array of weapon IDs
+    if (in_array($choix, $armes)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 
 function entrerDonjon($player)
 {
