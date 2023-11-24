@@ -87,6 +87,25 @@ class InventaireDAO
         }
     }
 
+    //Get taille inventaire by id (object + weapon)
+    public function getNbItemInventaireById($id)
+    {
+        try {
+            $req = $this->bdd->prepare('SELECT (COUNT(objet_id) + COUNT(arme_id)) AS total_objets
+            FROM Inventaire
+            WHERE personnage_id = :id_joueur;
+            ');
+
+            $req->bindParam(':id_joueur', $id, PDO::PARAM_INT);
+            $req->execute();
+
+            $donnees = $req->fetch(PDO::FETCH_ASSOC);
+            return $donnees['total_objets'];
+        } catch (Exception $e) {
+            die('Erreur lors de la recuperation de la taille de l\'inventaire : ' . $e->getMessage());
+        }
+    }
+
     // Get arme personnage by id
     public function getPersonnageArmeById($id)
     {
