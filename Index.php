@@ -112,13 +112,6 @@ function jouer($player)
         case 4:
             echo "A bientot !";
             exit();
-        case 5:
-            system("clear");
-            $inventaireDAO = GlobalVariables::$inventaireDAO;
-            ajouterArme($player);
-            ajouterObjetMagique($player);
-            jouer($player);
-            break;
         default:
             echo "Erreur de saisie, merci de choisir une option valide." . PHP_EOL . PHP_EOL;
             jouer($player);
@@ -168,20 +161,19 @@ function inventaire($player)
     echo "Votre inventaire:" . PHP_EOL . PHP_EOL;
 
     // Display objects in the inventory
-    echo "Objects: " . PHP_EOL;
+    echo "Objets : " . PHP_EOL;
     foreach ($objetMagiques as $objet) {
-        echo $objet->getNom() . PHP_EOL;
-        echo $objet->getEffetSpecial() . PHP_EOL;
+        echo "- " . $objet->getNom() . " " . $objet->getEffetSpecial() . PHP_EOL;
     }
 
     // Display weapons in the inventory
-    echo "Weapons: " . PHP_EOL;
+    echo PHP_EOL . "Armes : " . PHP_EOL;
     foreach ($armesResult as $arme) {
-        echo $arme->getNom() . PHP_EOL;
-        echo $arme->getPointAttaqueBonus() . PHP_EOL;
+        echo "- " . $arme->getNom() . " " . $arme->getPointAttaqueBonus() . PHP_EOL;
     }
 
     // Display the possibility to equip an object or a weapon
+    echo PHP_EOL . "Que voulez-vous faire ?" . PHP_EOL . PHP_EOL;
     echo "1. Equiper une arme" . PHP_EOL;
     echo "2. Utiliser un objet" . PHP_EOL;
     echo "3. Jeter un objet" . PHP_EOL;
@@ -195,8 +187,7 @@ function inventaire($player)
             equipArme($player);
             break;
         case 2:
-            readline("Quel objet voulez-vous utiliser ? (id de l'objet) : ");
-            utiliserObjet($player,$choix);
+            // utiliserObjet($player);
             break;
         case 3:
             removeObjetFromInventaire($inventaire->getPersonnageId());
@@ -383,6 +374,9 @@ function entrerSalle($player, $nbSalle)
 
         //Display the room
         echo "Il vous reste " . $nbSalle . " salle(s) à finir. Vous êtes dans une salle de type " . $salle->getType() . ", " . $salle->getDescription() . PHP_EOL . PHP_EOL;
+
+
+
         echo "Que voulez-vous faire ?" . PHP_EOL . PHP_EOL;
 
         //Display the room options depending on the room type
@@ -401,7 +395,7 @@ function entrerSalle($player, $nbSalle)
             case 1:
                 system("clear");
                 if ($salle->getType() === "bonus") {
-                    $salleIsEnd = trouverTresors($salleIsEnd);
+                    $salleIsEnd = trouverTresors($salleIsEnd, $player);
                 } else if ($salle->getType() === "marchant") {
                     $salleIsEnd = marchand($player, $salleIsEnd);
                 } else {
@@ -440,6 +434,8 @@ function combattre($salleIsEnd, $salle, $player)
     $salleDAO = GlobalVariables::$salleDAO;
     $monstreDAO = GlobalVariables::$monstreDAO;
     $personnageDAO = GlobalVariables::$personnageDAO;
+    $armeDAO = GlobalVariables::$armeDAO;
+    $objetDAO = GlobalVariables::$objetDAO;
 
     //Load the monster(s) for the room
     $monstresIds = $salleDAO->getSalleMonstreById($salle->getId());
@@ -456,6 +452,7 @@ function combattre($salleIsEnd, $salle, $player)
     if ($player->getPoints_vie() > 0) {
 
         echo "Vous avez " . $player->getPoints_vie() . " points de vie." . PHP_EOL . PHP_EOL;
+        echo "Vous êtes niveau : " . $player->getNiveau() . " avec " . $player->getExperience() . " / 20 points d'expérience." . PHP_EOL . PHP_EOL;
 
         //Display all the monsters in the room
         echo "Vous allez devoir combattre " . count($monstres) . " monstre(s)." . PHP_EOL . PHP_EOL;
@@ -481,8 +478,7 @@ function combattre($salleIsEnd, $salle, $player)
             //Display the player options
             echo "Que voulez-vous faire ?" . PHP_EOL . PHP_EOL;
             echo "1. Attaquer" . PHP_EOL;
-            echo "2. Ouvrir votre inventaire" . PHP_EOL;
-            echo "3. Fuir" . PHP_EOL . PHP_EOL;
+            echo "2. Fuir" . PHP_EOL . PHP_EOL;
 
             $choix = readline("Votre choix: ");
 
@@ -520,6 +516,51 @@ function combattre($salleIsEnd, $salle, $player)
                     if ($monstres[$randomMonster]->getPoints_vie() <= 0) {
                         echo $monstres[$randomMonster]->getNom() . " est mort !" . PHP_EOL . PHP_EOL;
                         array_splice($monstres, $randomMonster, 1);
+                        $player->setExperience($player->getExperience() + 20);
+                        echo "Vous avez gagné 10 points d'expérience !" . PHP_EOL . PHP_EOL;
+
+                        //If the player get 20 xp, he level up
+                        if ($player->getExperience() >= 20) {
+                            $player->setExperience(0);
+                            $player->setNiveau($player->getNiveau() + 1);
+                            echo "Vous avez gagné un niveau !" . PHP_EOL . PHP_EOL;
+
+                            //Player stats up
+                            $player->setPoints_vie($player->getPoints_vie() + 50);
+                            $player->setPoints_attaque($player->getPoints_attaque() + 10);
+                            $player->setPoints_defense($player->getPoints_defense() + 5);
+                        }
+
+                        //Random drop of an object or a weapon
+                        $luck = rand(1, 3);
+                        if ($luck === 1) {
+                            $weaponOrObject = rand(1, 2);
+                            if ($weaponOrObject === 1) {
+                                $itemAleatoire = (rand(1, 5));
+                                $inventaire = $personnageDAO->getPersonnageInventaireById($player->getId());
+                                if ($personnageDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
+                                    // Add the item to the player inventory
+                                    $personnageDAO->addArmeToInventaire([$itemAleatoire], $player->getId());
+
+                                    echo "Vous avez trouvé : " . $armeDAO->getArmeById($itemAleatoire) . PHP_EOL . PHP_EOL;
+                                } else {
+                                    echo "Votre inventaire est plein ! Vous ne pouvez pas prendre cet objet !" . PHP_EOL;
+                                    readline("Appuyez sur entrée pour revenir au menu...");
+                                }
+                            } else {
+                                $itemAleatoire = (rand(1, 5));
+                                $inventaire = $personnageDAO->getPersonnageInventaireById($player->getId());
+                                if ($personnageDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
+                                    // Add the item to the player inventory
+                                    $personnageDAO->addObjetToInventaire([$itemAleatoire], $player->getId());
+
+                                    echo "Vous avez trouvé : " . $objetDAO->getObjetById($itemAleatoire) . PHP_EOL . PHP_EOL;
+                                } else {
+                                    echo "Votre inventaire est plein ! Vous ne pouvez pas prendre cet objet !" . PHP_EOL;
+                                    readline("Appuyez sur entrée pour revenir au menu...");
+                                }
+                            }
+                        }
                     }
 
                     echo "Appuyez sur entrée pour continuer le combat..." . PHP_EOL;
@@ -527,10 +568,6 @@ function combattre($salleIsEnd, $salle, $player)
                     system("clear");
                     break;
                 case 2:
-                    system("clear");
-                    inventaire($player);
-                    break;
-                case 3:
                     system("clear");
                     echo "Vous avez fuit le combat !" . PHP_EOL . PHP_EOL;
                     echo "Appuyez sur entrée pour revenir au menu principal..." . PHP_EOL;
@@ -560,8 +597,13 @@ function combattre($salleIsEnd, $salle, $player)
 }
 
 //If the player is lucky, he get an object, else, the room is finished
-function trouverTresors($salleIsEnd)
+function trouverTresors($salleIsEnd, $player)
 {
+    //Import GlobalVariables
+    $inventaireDAO = GlobalVariables::$inventaireDAO;
+    $objetDAO = GlobalVariables::$objetDAO;
+    $armeDAO = GlobalVariables::$armeDAO;
+
     system("clear");
     echo "Vous cherchez un trésor...";
     readline();
@@ -584,15 +626,46 @@ function trouverTresors($salleIsEnd)
         if ($weaponOrObject === 1) {
             echo "Vous avez trouvé une arme !" . PHP_EOL . PHP_EOL;
 
-            //TODO : Ajouter l'arme random à l'inventaire
-            $salleIsEnd = true;
-            return $salleIsEnd;
+            //Get random weapon
+            $itemAleatoire = (rand(1, 5));
+            $inventaire = $inventaireDAO->getInventaireById($player->getId());
+            if ($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
+                // Add the item to the player inventory
+                $inventaireDAO->addArmeToInventaire([$itemAleatoire], $player->getId());
+
+                echo "Vous avez trouvé : " . $armeDAO->getArmeById($itemAleatoire) . PHP_EOL . PHP_EOL;
+                readline();
+                $salleIsEnd = true;
+                return $salleIsEnd;
+            } else {
+                echo "Votre inventaire est plein ! Vous ne pouvez pas prendre cet objet !" . PHP_EOL;
+                readline("Appuyez sur entrée pour revenir au menu...");
+                system("clear");
+                $salleIsEnd = true;
+                return $salleIsEnd;
+            }
         } else {
             echo "Vous avez trouvé un objet magique !" . PHP_EOL . PHP_EOL;
 
-            //TODO : Ajouter l'objet magique random à l'inventaire
-            $salleIsEnd = true;
-            return $salleIsEnd;
+            //Get random object
+            $itemAleatoire = (rand(1, 5));
+
+            $inventaire = $inventaireDAO->getInventaireById($player->getId());
+            if ($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
+                // Add the item to the player inventory
+                $inventaireDAO->addObjetToInventaire([$itemAleatoire], $player->getId());
+
+                echo "Vous avez trouvé : " . $objetDAO->getObjetById($itemAleatoire) . PHP_EOL . PHP_EOL;
+                readline();
+                $salleIsEnd = true;
+                return $salleIsEnd;
+            } else {
+                echo "Votre inventaire est plein ! Vous ne pouvez pas prendre cet objet !" . PHP_EOL;
+                readline("Appuyez sur entrée pour revenir au menu...");
+                system("clear");
+                $salleIsEnd = true;
+                return $salleIsEnd;
+            }
         }
     } else {
         echo "Il n'y a rien par ici.. Que de la poussière et des toiles d'araignée..." . PHP_EOL . PHP_EOL;
@@ -859,34 +932,6 @@ function ajouterObjetMagique($player)
         readline("Appuyez sur entrée pour revenir au menu...");
     }
 }
-
-function utiliserObjet($player, $objet_id){
-    //Import GlobalVariables
-    $personnageDAO = GlobalVariables::$personnageDAO;
-    $objetDAO = GlobalVariables::$objetDAO;
-    $objet = $inventaireDAO->getObjetById($objet_id);
-
-    switch($objet->getTypes()){
-        case 'defense':
-            $player->setDefense($player->getDefense() + $objet->valeur());
-            $personnageDAO->modifyPersonnage($player);
-            break;
-        case 'attaque':
-            $player->setAttaque($player->getAttaque() + $objet->valeur());
-            $personnageDAO->modifyPersonnage($player);
-            break;
-        case 'vie':
-            $player->setVie($player->getVie() + $objet->getVie());
-            $personnageDAO->modifyPersonnage($player);
-            break;
-        default:
-            echo "Erreur : Type d'objet invalide." . PHP_EOL;
-            break;
-
-    }
-}
-
-
 
 //Start the game
 bienvenue();

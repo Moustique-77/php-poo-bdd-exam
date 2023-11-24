@@ -8,6 +8,7 @@ class GlobalVariables
     public static $personnageDAO;
     public static $salleDAO;
     public static $marchandDAO;
+    public static $objetDAO;
 
     public static function init($bdd)
     {
@@ -17,5 +18,6 @@ class GlobalVariables
         self::$personnageDAO = new PersonnageDAO($bdd);
         self::$salleDAO = new SalleDAO($bdd);
         self::$marchandDAO = new MarchandDAO($bdd);
+        self::$objetDAO = new ObjetDAO($bdd);
     }
 }

@@ -116,39 +116,18 @@ Menue:
 
 DONE :
 
-- Class Marchand 
-
-- check max objet dans l'inventaire and check if id arme is in inventory , check le niveau requis
+- Dans salle bonus -> ajout de l'items dans l'inventaire du joueur (Enzo)
 
 DOING : 
 
-- marchands (Enzo)
+- Charger la partie (teo)
 
-- fonctionnalité des items (Téo)
-
-TO DO
+- Drop items après combat (Enzo)
 
 URGENT : 
 
-- Sauvegarder la partie / Charger la partie (Enzo)
-
-- Dans salle bonus -> ajout de l'items dans l'inventaire du joueur (Enzo)
+- Dans salle piege -> ajout malus au joueur (Enzo)
 
 MOYEN : 
 
-- Xp & lvl (Enzo)
-
-Si du temps :
-
-- Dans salle piege -> ajout malus au joueur (Enzo)
-
-En plus :
-
 - Equilibrage global du jeu (Enzo & Téo)
-
-- Affichage plus clean (Enzo & Téo)
-
-
-
-
-SELECT (COUNT(objet_id) + COUNT(arme_id)) AS total_objets FROM Inventaire WHERE personnage_id = 12;
