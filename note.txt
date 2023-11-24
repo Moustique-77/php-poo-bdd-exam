@@ -118,11 +118,11 @@ DONE :
 
 - Class Marchand 
 
+- check max objet dans l'inventaire and check if id arme is in inventory , check le niveau requis
+
 DOING : 
 
 - marchands (Enzo)
-
-- check max objet dans l'inventaire and check if id arme is in inventory , check le niveau requis
 
 - fonctionnalité des items (Téo)
 

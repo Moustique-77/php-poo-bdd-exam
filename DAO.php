@@ -147,7 +147,9 @@ class InventaireDAO
             $req = $this->bdd->prepare('SELECT OM.id AS objet_magique_id,
             OM.nom AS nom_objet_magique,
             OM.effet_special,
-            OM.est_maudit
+            OM.est_maudit,
+            OM.types,
+            OM.valeur
             FROM Inventaire I
             JOIN ObjetsMagiques OM ON FIND_IN_SET(OM.id, I.objet_id)
             WHERE I.personnage_id = :personnage_id
@@ -164,7 +166,9 @@ class InventaireDAO
                     $objetMagique['objet_magique_id'],
                     $objetMagique['nom_objet_magique'],
                     $objetMagique['effet_special'],
-                    $objetMagique['est_maudit']
+                    $objetMagique['est_maudit'],
+                    $objetMagique['types'],
+                    $objetMagique['valeur']
                 );
             }
 
@@ -231,7 +235,6 @@ class InventaireDAO
     public function addArmeToInventaire($arme_ids, $personnage_id)
     {
         try {
-
             // Fetch the existing weapon IDs from the database
             $existingArmeIds = $this->getPersonnageArmeById($personnage_id);
             //get the id of all  weapon
@@ -428,6 +431,48 @@ class MarchandDAO
             }
         } catch (PDOException $e) {
             die("Erreur lors de la récupération des armes associées au marchand : " . $e->getMessage());
+        }
+    }
+
+    //Get marchand object
+    public function getObjetsMarchandById($marchandId)
+    {
+        try {
+            $requete = $this->bdd->prepare('SELECT objet_id FROM Marchand WHERE id = :marchand_id');
+            $requete->bindParam(':marchand_id', $marchandId, PDO::PARAM_INT);
+            $requete->execute();
+            $donnees = $requete->fetch(PDO::FETCH_ASSOC);
+
+            if ($donnees && isset($donnees['objet_id'])) {
+                $objetIds = explode(',', $donnees['objet_id']);
+                $objetsMarchand = [];
+
+                foreach ($objetIds as $objetId) {
+                    $requeteObjet = $this->bdd->prepare('SELECT id, nom, effet_special, est_maudit, types, valeur FROM ObjetsMagiques WHERE id = :objet_id');
+                    $requeteObjet->bindParam(':objet_id', $objetId, PDO::PARAM_INT);
+                    $requeteObjet->execute();
+                    $objet = $requeteObjet->fetch(PDO::FETCH_ASSOC);
+
+                    $objet = new ObjetMagique(
+                        $objet['id'],
+                        $objet['nom'],
+                        $objet['effet_special'],
+                        $objet['est_maudit'],
+                        $objet['types'],
+                        $objet['valeur']
+                    );
+
+                    if ($objet) {
+                        $objetsMarchand[] = $objet;
+                    }
+                }
+
+                return $objetsMarchand;
+            } else {
+                return [];
+            }
+        } catch (PDOException $e) {
+            die("Erreur lors de la récupération des objets associés au marchand : " . $e->getMessage());
         }
     }
 }
