@@ -35,8 +35,7 @@ function bienvenue()
             break;
         case 2:
             system("clear");
-            //TODO
-            //chargerPartie();
+            chargerPartie();
         case 3:
             echo "A bientot !";
             exit();
@@ -187,7 +186,8 @@ function inventaire($player)
             equipArme($player);
             break;
         case 2:
-            // utiliserObjet($player);
+            $choix = readline("Quel objet voulez-vous utiliser ? (id de l'objet) : ");
+            utiliserObjet($player, $choix);
             break;
         case 3:
             removeObjetFromInventaire($inventaire->getPersonnageId());
@@ -932,6 +932,75 @@ function ajouterObjetMagique($player)
         readline("Appuyez sur entrée pour revenir au menu...");
     }
 }
+
+function utiliserObjet($player, $objet_id)
+{
+    // Import GlobalVariables
+    $personnageDAO = GlobalVariables::$personnageDAO;
+    $objetDAO = GlobalVariables::$objetDAO;  // Correct variable name
+    // Use $objetDAO instead of $inventaireDAO
+    $objet = $objetDAO->getObjetById($objet_id);
+    var_dump($objet);
+    if ($objet) {
+        switch ($objet->getTypes()) {
+            case 'defense':
+                $player->setPoints_defense($player->getPoints_defense() + $objet->getValeur());
+                echo "Points de défense : " . $player->getPoints_defense() . PHP_EOL;
+                $personnageDAO->modifyPersonnage($player);
+                inventaire($player);
+                break;
+            case 'attaque':
+                $player->setPoints_attaque($player->getPoints_attaque() + $objet->getValeur());
+                echo "Points d'attaque : " . $player->getPoints_attaque() . PHP_EOL;
+                $personnageDAO->modifyPersonnage($player);
+                inventaire($player);
+                break;
+            case 'vie':
+                $player->setPoints_vie($player->getPoints_vie() + $objet->getValeur());
+                echo "Points de vie : " . $player->getPoints_vie() . PHP_EOL;
+                $personnageDAO->modifyPersonnage($player);
+                inventaire($player);
+                break;
+            default:
+                echo "Erreur : Type d'objet invalide." . PHP_EOL;
+                inventaire($player);
+                break;
+        }
+    } else {
+        echo "Erreur : Objet non trouvé." . PHP_EOL;
+    }
+}
+
+function chargerPartie()
+{
+    //Import GlobalVariables
+    $personnageDAO = GlobalVariables::$personnageDAO;
+
+    $personnage = $personnageDAO->getLastTenPersonnage();
+
+    foreach ($personnage as $key => $value) {
+        echo $value->getId() . " : " . $value->getNom() . PHP_EOL;
+    }
+
+    $id = readline("Saisir l'id du personnage à charger : ");
+
+    $player = $personnageDAO->getPersonnageById($id);
+
+    if ($player) {
+        echo "Vous avez choisi le personnage : " . $player->getNom() . PHP_EOL;
+        echo "Appuyez sur entrée pour continuer..." . PHP_EOL;
+        readline();
+        system("clear");
+        jouer($player);
+        return $player;
+    } else {
+        echo "Erreur : Personnage non trouvé." . PHP_EOL;
+        chargerPartie();
+        return;
+    }
+}
+
+
 
 //Start the game
 bienvenue();

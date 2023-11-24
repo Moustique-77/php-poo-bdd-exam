@@ -575,11 +575,26 @@ class ObjetDAO
     public function getObjetById($id)
     {
         try {
-            $req = $this->bdd->prepare('SELECT * FROM objets WHERE id = :id');
+            $req = $this->bdd->prepare('SELECT * FROM objetsMagiques WHERE id = :id');
             $req->bindParam(':id', $id, PDO::PARAM_INT);
             $req->execute();
             $donnees = $req->fetch(PDO::FETCH_ASSOC);
-            return new ObjetMagique($donnees['id'], $donnees['nom'], $donnees['points_vie_bonus'], $donnees['points_attaque_bonus'], $donnees['points_defense_bonus'], $donnees['salle_id']);
+            // Check if an object with the given ID was found
+            if ($donnees) {
+
+                $objet = new ObjetMagique(
+                    $donnees['id'],
+                    $donnees['nom'],
+                    $donnees['effet_special'],
+                    $donnees['est_maudit'],
+                    $donnees['types'],
+                    $donnees['valeur']
+                );
+                return $objet;
+            } else {
+                // Return null or handle the absence of the object as needed
+                return null;
+            }
         } catch (Exception $e) {
             die('Erreur lors de la recuperation de l\'objet : ' . $e->getMessage());
         }
@@ -752,6 +767,35 @@ class PersonnageDAO
             return $arme;
         } catch (Exception $e) {
             die('Erreur lors de la récupération de l\'arme : ' . $e->getMessage());
+        }
+    }
+
+    // Get the last ten personnage
+
+    public function getLastTenPersonnage()
+    {
+        try {
+            $req = $this->bdd->prepare('SELECT * FROM personnages ORDER BY id DESC LIMIT 10');
+            $req->execute();
+            $donnees = $req->fetchAll(PDO::FETCH_ASSOC);
+            $personnages = [];
+
+            foreach ($donnees as $personnage) {
+                $personnages[] = new Personnage(
+                    $personnage['id'],
+                    $personnage['nom'],
+                    $personnage['points_vie'],
+                    $personnage['points_attaque'],
+                    $personnage['points_defense'],
+                    $personnage['experience'],
+                    $personnage['niveau'],
+                    $personnage['arme_equiper_id']
+                );
+            }
+
+            return $personnages;
+        } catch (Exception $e) {
+            die('Erreur lors de la recuperation des personnages : ' . $e->getMessage());
         }
     }
 }
