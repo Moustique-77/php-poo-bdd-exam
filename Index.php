@@ -203,10 +203,10 @@ function inventaire($player)
             inventaire($player);
             break;
         case 4:
-            
+
             removeArme($inventaire->getPersonnageId());
             inventaire($player);
-            
+
             break;
         case 5:
             jouer($player);
@@ -243,22 +243,20 @@ function equipArme($player)
     // Import GlobalVariables
     $personnageDAO = GlobalVariables::$personnageDAO;
     $choix = readline("Quelle arme souhaiter vous équiper (arme id): ");
-    
-    // Check if the weapon is in the player's inventory and if the player meets the required level
-    if(checkInInventaire($player, $choix)){
 
-        if(checkNiveauRequis($player, $choix)){
+    // Check if the weapon is in the player's inventory and if the player meets the required level
+    if (checkInInventaire($player, $choix)) {
+
+        if (checkNiveauRequis($player, $choix)) {
             $player->setArme_equiper_id($choix);
             echo $player->getArme_equiper_id();
             $personnageDAO->modifyPersonnage($player);
             inventaire($player);
-        }
-        else{
+        } else {
             echo "Vous n'avez le niveaux requis pour équiper cette arme" . PHP_EOL;
             inventaire($player);
         }
-    }
-    else{
+    } else {
         echo "Vous n'avez pas cette arme dans votre inventaire." . PHP_EOL;
         inventaire($player);
     }
@@ -297,7 +295,7 @@ function checkInInventaire($player, $choix)
     }
 }
 
-
+// Start the game and display the story of the game
 function entrerDonjon($player)
 {
     //Import GlobalVariables
@@ -355,15 +353,14 @@ function entrerDonjon($player)
     }
 }
 
+//Enter a room
 function entrerSalle($player, $nbSalle)
 {
     //Import GlobalVariables
     $salleDAO = GlobalVariables::$salleDAO;
 
     //Select a random rooms
-    //$salleRandom = rand(1, $salleDAO->getNbSalle());
-
-    $salleRandom = 4;
+    $salleRandom = rand(1, $salleDAO->getNbSalle());
 
     //Load the room
     $salle = $salleDAO->getSalleById($salleRandom);
@@ -615,8 +612,7 @@ function marchand($player, $salleIsEnd)
     $inventaireDAO = GlobalVariables::$inventaireDAO;
 
     //Select a random merchant & load it
-    //$randomMarchand = rand(1, $marchandDAO->countMarchand());
-    $randomMarchand = 1;
+    $randomMarchand = rand(1, $marchandDAO->countMarchand());
     $marchand = $marchandDAO->getMarchandById($randomMarchand);
 
 
@@ -652,7 +648,7 @@ function marchand($player, $salleIsEnd)
 
                 // Display the items
                 foreach ($items as $item) {
-                    echo "- ID : " . $item->getId() . " Arme : " . $item->getNom() . " : " . $item->getPointAttaqueBonus() . " points d'attaque bonus" . PHP_EOL . PHP_EOL;
+                    echo "- ID : " . $item->getId() . "| Arme : " . $item->getNom() . " => " . $item->getPointAttaqueBonus() . " points d'attaque bonus" . PHP_EOL . PHP_EOL;
                 }
 
                 //Get Random Item of player inventory
@@ -670,41 +666,48 @@ function marchand($player, $salleIsEnd)
                     if (!empty($inventaireComplet)) {
                         // Get a random item from the combined inventory
                         $itemAleatoire = $inventaireComplet[array_rand($inventaireComplet)];
+
                         echo "Je te propose d'échanger ton item : " . $itemAleatoire->getNom() . " contre un de mes items." . PHP_EOL . PHP_EOL;
 
                         // Display the player options
-                        echo "Choisis l'item (ID) que tu veux échanger avec moi : " . PHP_EOL . PHP_EOL;
-
-                        // Get the player choice
-                        $choix = readline("Votre choix : ");
+                        $choix = readline("Choisis l'item (ID) que tu veux échanger avec moi : ") . PHP_EOL . PHP_EOL;
 
                         // Check if the player choice is valid 
                         if ($choix === $itemAleatoire->getId()) {
                             //Check if the player try to trade the same item as the merchant
-                            if ($choix === $itemAleatoire->getId()) {
-                                echo "Tu as déjà cet objet. Tu essaies de me voler !" . PHP_EOL;
-                                $salleIsEnd = true;
-                                return $salleIsEnd;
-                            }
-                            // Remove the item from the player inventory
-                            $inventaireDAO->removeArmeFromInventaire($choix, $player->getId());
-
-                            // Add the item to the player inventory
-                            $inventaireDAO->addArmeToInventaire($itemAleatoire->getId(), $player->getId());
-
-                            // Display the result
-                            echo "Tu as échangé ton item : " . $itemAleatoire->getNom() . " contre l'item n°: " . $choix . PHP_EOL . PHP_EOL;
-                            echo "Appuyez sur entrée pour continuer..." . PHP_EOL;
-                            readline();
+                            echo "Tu as déjà cet objet. Tu essaies de me voler !" . PHP_EOL;
+                            $salleIsEnd = true;
+                            return $salleIsEnd;
+                        }
+                        //Si le joueur demande un item pas proposé par le marchand
+                        elseif ($choix > count($items)) {
+                            echo "Je ne vends pas cet item. Tu essaies de me voler !" . PHP_EOL;
                             $salleIsEnd = true;
                             return $salleIsEnd;
                         } else {
-                            echo "Cette objet n'est proposé. Tu essaies de me voler !" . PHP_EOL;
+                            $inventaire = $inventaireDAO->getInventaireById($player->getId());
+                            if ($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
+                                // Remove the item from the player inventory
+                                $inventaireDAO->removeArmeFromInventaire($choix, $player->getId());
+
+                                // Add the item to the player inventory
+                                $inventaireDAO->addArmeToInventaire([$itemAleatoire->getId()], $player->getId());
+                            } else {
+                                echo "Votre inventaire est plein ! Vous ne pouvez pas échanger !" . PHP_EOL;
+                                readline("Appuyez sur entrée pour revenir au menu...");
+                            }
+
+                            // Display the result
+                            echo PHP_EOL . "Tu as échangé ton item : " . $itemAleatoire->getNom() . " contre l'item n°: " . $choix . PHP_EOL;
+                            echo "Tu as maintenant l'item : " . $items[$choix - 1]->getNom() . PHP_EOL . PHP_EOL;
+                            echo "Appuyez sur entrée pour continuer..." . PHP_EOL;
+                            readline();
+                            system("clear");
                             $salleIsEnd = true;
                             return $salleIsEnd;
                         }
                     } else {
-                        system("clear");
+                        //system("clear");
                         echo "Ton inventaire est vide ! Je ne peux échanger avec toi..." . PHP_EOL;
                         readline();
                         $salleIsEnd = true;
@@ -717,7 +720,79 @@ function marchand($player, $salleIsEnd)
 
                 // If the merchant is a mage
             } elseif ($marchand->getNom() === "forgemage") {
-                //$items = $marchandDAO->getMarchandObjetsById($marchand->getId());
+                $items = $marchandDAO->getObjetsMarchandById($marchand->getId());
+
+                // Display the items
+                foreach ($items as $item) {
+                    echo "- ID : " . $item->getId() . "| Objet : " . $item->getNom() . " => " . $item->getEffetSpecial() . PHP_EOL . PHP_EOL;
+                }
+
+                //Get Random Item of player inventory
+                $inventaire = $inventaireDAO->getInventaireById($player->getId());
+                $itemAleatoire = null;
+
+                if ($inventaire !== null) {
+                    // Get objects and weapons directly from $inventaire
+                    $objetMagiques = $inventaireDAO->getObjetById($inventaire->getId());
+                    $armesResult = $inventaireDAO->getPersonnageArmeById($inventaire->getPersonnageId());
+
+                    // Combine objects and weapons into a single array
+                    $inventaireComplet = array_merge($objetMagiques, $armesResult);
+
+                    if (!empty($inventaireComplet)) {
+                        // Get a random item from the combined inventory
+                        $itemAleatoire = $inventaireComplet[array_rand($inventaireComplet)];
+
+                        echo "Je te propose d'échanger ton item : " . $itemAleatoire->getNom() . " contre un de mes items." . PHP_EOL . PHP_EOL;
+
+                        // Display the player options
+                        $choix = readline("Choisis l'item (ID) que tu veux échanger avec moi : ") . PHP_EOL . PHP_EOL;
+
+                        // Check if the player choice is valid 
+                        if ($choix === $itemAleatoire->getId()) {
+                            //Check if the player try to trade the same item as the merchant
+                            echo "Tu as déjà cet objet. Tu essaies de me voler !" . PHP_EOL;
+                            $salleIsEnd = true;
+                            return $salleIsEnd;
+                        }
+                        //Si le joueur demande un item pas proposé par le marchand
+                        elseif ($choix > count($items)) {
+                            echo "Je ne vends pas cet item. Tu essaies de me voler !" . PHP_EOL;
+                            $salleIsEnd = true;
+                            return $salleIsEnd;
+                        } else {
+                            $inventaire = $inventaireDAO->getInventaireById($player->getId());
+                            if ($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
+                                // Remove the item from the player inventory
+                                $inventaireDAO->removeObjetFromInventaire($choix, $player->getId());
+
+                                // Add the item to the player inventory
+                                $inventaireDAO->addObjetToInventaire([$itemAleatoire->getId()], $player->getId());
+                            } else {
+                                echo "Votre inventaire est plein ! Vous ne pouvez pas échanger !" . PHP_EOL;
+                                readline("Appuyez sur entrée pour revenir au menu...");
+                            }
+
+                            // Display the result
+                            echo PHP_EOL . "Tu as échangé ton item : " . $itemAleatoire->getNom() . " contre l'item n°: " . $choix . PHP_EOL;
+                            echo "Tu as maintenant l'item : " . $items[$choix - 1]->getNom() . PHP_EOL . PHP_EOL;
+                            echo "Appuyez sur entrée pour continuer..." . PHP_EOL;
+                            readline();
+                            system("clear");
+                            $salleIsEnd = true;
+                            return $salleIsEnd;
+                        }
+                    } else {
+                        //system("clear");
+                        echo "Ton inventaire est vide ! Je ne peux échanger avec toi..." . PHP_EOL;
+                        readline();
+                        $salleIsEnd = true;
+                        return $salleIsEnd;
+                    }
+                } else {
+                    echo "Erreur : Inventaire non trouvé." . PHP_EOL;
+                    return;
+                }
             } else {
                 echo "Erreur : Marchand non trouvé." . PHP_EOL;
                 return;
@@ -743,52 +818,46 @@ function ajouterArme($player)
 {
     //Import GlobalVariables
     $inventaireDAO = GlobalVariables::$inventaireDAO;
-    $inventaire = $inventaireDAO->getInventaireById($player->getId());  
+    $inventaire = $inventaireDAO->getInventaireById($player->getId());
     echo $inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId());
-    if($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId())< $inventaire->getTaille()){
+    if ($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
 
         $inventaire = $inventaireDAO->getInventaireById($player->getId());
 
-    
+
         // Initialize the $armes array
         $armes = [];
-    
+
         $idArme = readline("Saisir l'id de l'arme à ajouter : ");
         array_push($armes, $idArme);
-    
-    
-        $inventaireDAO->addArmeToInventaire($armes, $player->getId());
 
-    }
-    else{
+
+        $inventaireDAO->addArmeToInventaire($armes, $player->getId());
+    } else {
         echo "Votre inventaire est plein ! Vous ne pouvez pas ajouter d'arme !" . PHP_EOL;
         readline("Appuyez sur entrée pour revenir au menu...");
     }
-
 }
 
 function ajouterObjetMagique($player)
 {
     //Import GlobalVariables
-    $inventaireDAO = GlobalVariables::$inventaireDAO; 
-    $inventaire = $inventaireDAO->getInventaireById($player->getId());  
+    $inventaireDAO = GlobalVariables::$inventaireDAO;
+    $inventaire = $inventaireDAO->getInventaireById($player->getId());
     echo $inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId());
-    if($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId())< $inventaire->getTaille()){
+    if ($inventaireDAO->getNbItemInventaireById($inventaire->getPersonnageId()) < $inventaire->getTaille()) {
 
         // Initialize the $objets array
         $objets = [];
-    
+
         $idObjet = readline("Saisir l'id de l'objet magique à ajouter : ");
         array_push($objets, $idObjet);
-    
+
         $inventaireDAO->addObjetToInventaire($objets, $player->getId());
-    
-    }
-    else{
+    } else {
         echo "Votre inventaire est plein ! Vous ne pouvez pas ajouter d'objet !" . PHP_EOL;
         readline("Appuyez sur entrée pour revenir au menu...");
     }
-   
 }
 
 function utiliserObjet($player, $objet_id){
