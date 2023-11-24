@@ -1,6 +1,40 @@
 <?php
 
+class ArmeDAO
+{
+    private $bdd;
 
+    public function __construct($bdd)
+    {
+        $this->bdd = $bdd;
+    }
+
+    // Gett arm by id
+    public function getArmeById($id)
+    {
+        try {
+            $req = $this->bdd->prepare('SELECT * FROM armes WHERE id = :id');
+            $req->bindParam(':id', $id, PDO::PARAM_INT);
+            $req->execute();
+            $donnees = $req->fetch(PDO::FETCH_ASSOC);
+
+            // Check if data is retrieved before creating an object
+            if ($donnees) {
+                $arme = new Arme(
+                    $donnees['id'],
+                    $donnees['nom'],
+                    $donnees['niveau_requis'],
+                    $donnees['points_attaque_bonus']
+                );
+                return $arme;
+            } else {
+                return null;
+            }
+        } catch (Exception $e) {
+            die('Erreur lors de la recuperation de l\'arme : ' . $e->getMessage());
+        }
+    }
+}
 class InventaireDAO
 {
     private $bdd;
@@ -53,8 +87,8 @@ class InventaireDAO
         }
     }
 
-    // Get arme by id
-    public function getArmeById($id)
+    // Get arme personnage by id
+    public function getPersonnageArmeById($id)
     {
         try {
             $req = $this->bdd->prepare('SELECT A.id AS arme_id,
@@ -146,7 +180,7 @@ class InventaireDAO
         try {
 
             // Fetch the existing weapon IDs from the database
-            $existingArmeIds = $this->getArmeById($personnage_id);
+            $existingArmeIds = $this->getPersonnageArmeById($personnage_id);
             //get the id of all  weapon
             $existingArmeIds = array_map(function ($arme) {
                 return $arme->getId();
@@ -200,7 +234,7 @@ class InventaireDAO
         }
     }
 
-    // This method is more efficient than getArmeById() because it only needs to query the database once.
+    // This method is more efficient than getPersonnageArmeById() because it only needs to query the database once.
     private function getArmeIdByPersonnageId($personnage_id)
     {
         $req = $this->bdd->prepare('SELECT id FROM armes WHERE personnage_id = :personnage_id');
@@ -216,26 +250,28 @@ class InventaireDAO
         try {
 
             // Fetch the existing weapon IDs from the database
-            $existingArmeIds = $this->getArmeIdByPersonnageId($personnage_id);
+            $existingArmeIds = $this->getPersonnageArmeById($personnage_id);
+            //get the id of all  weapon
+            $existingArmeIds = array_map(function ($arme) {
+                return $arme->getId();
+            }, $existingArmeIds);
+            // Delete the ID of the weapon to be removed from the existing IDs
+            $allArmeIds = array_diff($existingArmeIds, array($arme_id));
 
-            // Remove the specified weapon ID from the array
-            $updatedArmeIds = array_diff($existingArmeIds, [$arme_id]);
+            // Create a comma-separated string of unique arme_ids
+            $idsString = implode(',', $allArmeIds);
 
-            // Update the inventory with the new list of weapon IDs
-            $this->modifyInventaire($personnage_id, $updatedArmeIds);
+            // Use the IN clause in the SQL query to update the rows
+            $req = $this->bdd->prepare("UPDATE inventaire SET arme_id = :arme_id WHERE personnage_id = :personnage_id");
+            $req->bindParam(':personnage_id', $personnage_id, PDO::PARAM_INT);
+            $req->bindParam(':arme_id', $idsString, PDO::PARAM_STR); // Store as a string
 
-            echo "The weapon has been successfully deleted from the inventory.";
-        } catch (PDOException $e) {
-            // Handle PDO errors
-            echo "Error: " . $e->getMessage();
+            // Execute the query
+            $req->execute();
+        } catch (Exception $e) {
+            die('Erreur lors de l\'ajout de l\'arme à l\'inventaire : ' . $e->getMessage());
         }
     }
-
-
-
-
-
-
 
     // Remove object from inventory
     public function removeObjetFromInventaire($objet_id, $personnage_id)
@@ -250,7 +286,7 @@ class InventaireDAO
             }, $existingObjetIds);
 
             // Remove the specified object ID from the array
-            $updatedObjetIds = array_diff($existingObjetIds, [$objet_id]);
+            $updatedObjetIds = array_diff($existingObjetIds, array($objet_id));
 
             // Create a comma-separated string of updated object IDs
             $idsString = implode(',', $updatedObjetIds);
@@ -262,6 +298,83 @@ class InventaireDAO
             $req->execute();
         } catch (Exception $e) {
             die('Erreur lors de la suppression de l\'objet de l\'inventaire : ' . $e->getMessage());
+        }
+    }
+}
+
+class MarchandDAO
+{
+    private $bdd;
+
+    public function __construct($bdd)
+    {
+        $this->bdd = $bdd;
+    }
+
+    // Get marchand by id
+    public function getMarchandById($id)
+    {
+        try {
+            $req = $this->bdd->prepare('SELECT * FROM marchand WHERE id = :id');
+            $req->bindParam(':id', $id, PDO::PARAM_INT);
+            $req->execute();
+            $donnees = $req->fetch(PDO::FETCH_ASSOC);
+            return new Marchand($donnees['id'], $donnees['nom'], $donnees['objet_id'], $donnees['arme_id'], $donnees['description']);
+        } catch (Exception $e) {
+            die('Erreur lors de la recuperation du marchand : ' . $e->getMessage());
+        }
+    }
+
+    //Count marchand
+    public function countMarchand()
+    {
+        try {
+            $req = $this->bdd->prepare('SELECT COUNT(*) FROM marchand');
+            $req->execute();
+            $donnees = $req->fetch(PDO::FETCH_ASSOC);
+            return $donnees['COUNT(*)'];
+        } catch (Exception $e) {
+            die('Erreur lors de la recuperation du nombre de marchand : ' . $e->getMessage());
+        }
+    }
+
+    //Get marchand weapon
+    public function getArmesMarchandById($marchandId)
+    {
+        try {
+            $requete = $this->bdd->prepare('SELECT arme_id FROM Marchand WHERE id = :marchand_id');
+            $requete->bindParam(':marchand_id', $marchandId, PDO::PARAM_INT);
+            $requete->execute();
+            $donnees = $requete->fetch(PDO::FETCH_ASSOC);
+
+            if ($donnees && isset($donnees['arme_id'])) {
+                $armeIds = explode(',', $donnees['arme_id']);
+                $armesMarchand = [];
+
+                foreach ($armeIds as $armeId) {
+                    $requeteArme = $this->bdd->prepare('SELECT id, nom, niveau_requis, points_attaque_bonus FROM Armes WHERE id = :arme_id');
+                    $requeteArme->bindParam(':arme_id', $armeId, PDO::PARAM_INT);
+                    $requeteArme->execute();
+                    $arme = $requeteArme->fetch(PDO::FETCH_ASSOC);
+
+                    $arme = new Arme(
+                        $arme['id'],
+                        $arme['nom'],
+                        $arme['niveau_requis'],
+                        $arme['points_attaque_bonus']
+                    );
+
+                    if ($arme) {
+                        $armesMarchand[] = $arme;
+                    }
+                }
+
+                return $armesMarchand;
+            } else {
+                return [];
+            }
+        } catch (PDOException $e) {
+            die("Erreur lors de la récupération des armes associées au marchand : " . $e->getMessage());
         }
     }
 }
@@ -500,7 +613,6 @@ class PersonnageDAO
             $req->execute();
 
             $donnees = $req->fetch(PDO::FETCH_ASSOC);
-
             $arme = new Arme(
                 $donnees['arme_id'],
                 $donnees['nom_arme'],

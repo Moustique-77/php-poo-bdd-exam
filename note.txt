@@ -114,29 +114,31 @@ Menue:
         fuire -> 3
 
 
+DONE :
+
+- Class Marchand 
+
+DOING : 
+
+- marchands (Enzo)
+
+- check max objet dans l'inventaire and check if id arme is in inventory , check le niveau requis
+
+- fonctionnalité des items (Téo)
+
 TO DO
 
 URGENT : 
 
-- Delete item de l'inventaire du joueur (Téo)
-
-- Equiper un item (Téo)
-
 - Sauvegarder la partie / Charger la partie (Enzo)
 
+- Dans salle bonus -> ajout de l'items dans l'inventaire du joueur (Enzo)
 
 MOYEN : 
 
 - Xp & lvl (Enzo)
 
-- marchands (Enzo)
-
-- fonctionnalité des items (Téo)
-
-
 Si du temps :
-
-- Dans salle bonus -> ajout de l'items dans l'inventaire du joueur (Enzo)
 
 - Dans salle piege -> ajout malus au joueur (Enzo)
 
