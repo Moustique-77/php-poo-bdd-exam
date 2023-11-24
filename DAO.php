@@ -574,15 +574,32 @@ class objetDAO{
     public function getObjetById($id)
     {
         try {
-            $req = $this->bdd->prepare('SELECT * FROM objets WHERE id = :id');
+            $req = $this->bdd->prepare('SELECT * FROM objetsMagiques WHERE id = :id');
             $req->bindParam(':id', $id, PDO::PARAM_INT);
             $req->execute();
             $donnees = $req->fetch(PDO::FETCH_ASSOC);
-            return new Objet($donnees['id'], $donnees['nom'], $donnees['points_vie_bonus'], $donnees['points_attaque_bonus'], $donnees['points_defense_bonus'], $donnees['salle_id']);
+            // Check if an object with the given ID was found
+            if ($donnees) {
+
+                $objet = new ObjetMagique(
+                    $donnees['id'],
+                    $donnees['nom'],
+                    $donnees['effet_special'],
+                    $donnees['est_maudit'],
+                    $donnees['types'],
+                    $donnees['valeur']
+                );
+                return $objet;
+                
+            } else {
+                // Return null or handle the absence of the object as needed
+                return null;
+            }
         } catch (Exception $e) {
             die('Erreur lors de la recuperation de l\'objet : ' . $e->getMessage());
         }
     }
+    
 }
 class PersonnageDAO
 {

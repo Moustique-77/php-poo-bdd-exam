@@ -195,7 +195,7 @@ function inventaire($player)
             equipArme($player);
             break;
         case 2:
-            readline("Quel objet voulez-vous utiliser ? (id de l'objet) : ");
+            $choix = readline("Quel objet voulez-vous utiliser ? (id de l'objet) : ");
             utiliserObjet($player,$choix);
             break;
         case 3:
@@ -860,31 +860,43 @@ function ajouterObjetMagique($player)
     }
 }
 
-function utiliserObjet($player, $objet_id){
-    //Import GlobalVariables
+function utiliserObjet($player, $objet_id) {
+    // Import GlobalVariables
     $personnageDAO = GlobalVariables::$personnageDAO;
-    $objetDAO = GlobalVariables::$objetDAO;
-    $objet = $inventaireDAO->getObjetById($objet_id);
-
-    switch($objet->getTypes()){
-        case 'defense':
-            $player->setDefense($player->getDefense() + $objet->valeur());
-            $personnageDAO->modifyPersonnage($player);
-            break;
-        case 'attaque':
-            $player->setAttaque($player->getAttaque() + $objet->valeur());
-            $personnageDAO->modifyPersonnage($player);
-            break;
-        case 'vie':
-            $player->setVie($player->getVie() + $objet->getVie());
-            $personnageDAO->modifyPersonnage($player);
-            break;
-        default:
-            echo "Erreur : Type d'objet invalide." . PHP_EOL;
-            break;
-
+    $objetDAO = GlobalVariables::$objetDAO;  // Correct variable name
+    // Use $objetDAO instead of $inventaireDAO
+    $objet = $objetDAO->getObjetById($objet_id);
+    var_dump($objet);
+    if ($objet) {
+        switch ($objet->getTypes()) {
+            case 'defense':
+                $player->setPoints_defense($player->getPoints_defense() + $objet->getValeur());
+                echo "Points de défense : " . $player->getPoints_defense() . PHP_EOL;
+                $personnageDAO->modifyPersonnage($player);
+                inventaire($player);
+                break;
+            case 'attaque':
+                $player->setPoints_attaque($player->getPoints_attaque() + $objet->getValeur());
+                echo "Points d'attaque : " . $player->getPoints_attaque() . PHP_EOL;
+                $personnageDAO->modifyPersonnage($player);
+                inventaire($player);
+                break;
+            case 'vie':
+                $player->setPoints_vie($player->getPoints_vie() + $objet->getValeur());
+                echo "Points de vie : " . $player->getPoints_vie() . PHP_EOL;
+                $personnageDAO->modifyPersonnage($player);
+                inventaire($player);
+                break;
+            default:
+                echo "Erreur : Type d'objet invalide." . PHP_EOL;
+                inventaire($player);
+                break;
+        }
+    } else {
+        echo "Erreur : Objet non trouvé." . PHP_EOL;
     }
 }
+
 
 
 
