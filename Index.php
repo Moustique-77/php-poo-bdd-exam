@@ -35,8 +35,7 @@ function bienvenue()
             break;
         case 2:
             system("clear");
-            //TODO
-            //chargerPartie();
+            chargerPartie();
         case 3:
             echo "A bientot !";
             exit();
@@ -897,6 +896,33 @@ function utiliserObjet($player, $objet_id) {
     }
 }
 
+function chargerPartie(){
+    //Import GlobalVariables
+    $personnageDAO = GlobalVariables::$personnageDAO;
+
+    $personnage = $personnageDAO->getLastTenPersonnage();
+
+    foreach ($personnage as $key => $value) {
+        echo $value->getId() . " : " . $value->getNom() . PHP_EOL;
+    }
+
+    $id = readline("Saisir l'id du personnage à charger : ");
+
+    $player = $personnageDAO->getPersonnageById($id);
+
+    if ($player) {
+        echo "Vous avez choisi le personnage : " . $player->getNom() . PHP_EOL;
+        echo "Appuyez sur entrée pour continuer..." . PHP_EOL;
+        readline();
+        system("clear");
+        jouer($player);
+        return $player;
+    } else {
+        echo "Erreur : Personnage non trouvé." . PHP_EOL;
+        chargerPartie();
+        return;
+    }
+}
 
 
 

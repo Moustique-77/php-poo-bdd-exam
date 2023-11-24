@@ -770,6 +770,35 @@ class PersonnageDAO
             die('Erreur lors de la récupération de l\'arme : ' . $e->getMessage());
         }
     }
+
+    // Get the last ten personnage
+
+    public function getLastTenPersonnage()
+    {
+        try {
+            $req = $this->bdd->prepare('SELECT * FROM personnages ORDER BY id DESC LIMIT 10');
+            $req->execute();
+            $donnees = $req->fetchAll(PDO::FETCH_ASSOC);
+            $personnages = [];
+
+            foreach ($donnees as $personnage) {
+                $personnages[] = new Personnage(
+                    $personnage['id'],
+                    $personnage['nom'],
+                    $personnage['points_vie'],
+                    $personnage['points_attaque'],
+                    $personnage['points_defense'],
+                    $personnage['experience'],
+                    $personnage['niveau'],
+                    $personnage['arme_equiper_id']
+                );
+            }
+
+            return $personnages;
+        } catch (Exception $e) {
+            die('Erreur lors de la recuperation des personnages : ' . $e->getMessage());
+        }
+    }
 }
 
 class SalleDAO
