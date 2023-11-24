@@ -183,6 +183,40 @@ class InventaireDAO
         }
     }
 
+    //Get Weapon by id
+    public function getWeaponById($id)
+    {
+        try {
+            $req = $this->bdd->prepare('SELECT A.id,
+            A.nom,
+            A.niveau_requis,
+            A.points_attaque_bonus
+            FROM Inventaire I
+            JOIN Armes A ON FIND_IN_SET(A.id, I.arme_id)
+            WHERE I.personnage_id = :personnage_id
+            ');
+
+            $req->bindParam(':personnage_id', $id, PDO::PARAM_INT);
+            $req->execute();
+
+            $donnees = $req->fetchAll(PDO::FETCH_ASSOC);
+            $armes = [];
+
+            foreach ($donnees as $arme) {
+                $armes[] = new Arme(
+                    $arme['id'],
+                    $arme['nom'],
+                    $arme['niveau_requis'],
+                    $arme['points_attaque_bonus']
+                );
+            }
+
+            return $armes;
+        } catch (Exception $e) {
+            die('Erreur lors de la récupération de l\'objet : ' . $e->getMessage());
+        }
+    }
+
     // Modify inventaire by id
     public function modifyInventaire(Inventaire $inventaire)
     {
