@@ -87,24 +87,33 @@ class InventaireDAO
         }
     }
 
-    //Get taille inventaire by id (object + weapon)
-    public function getNbItemInventaireById($id)
-    {
-        try {
-            $req = $this->bdd->prepare('SELECT (COUNT(objet_id) + COUNT(arme_id)) AS total_objets
-            FROM Inventaire
-            WHERE personnage_id = :id_joueur;
-            ');
+  // Get taille inventaire by id (object + weapon)
+  public function getNbItemInventaireById($id)
+  {
+      try {
+          echo 'id: ' . $id . '<br>';
+          $req = $this->bdd->prepare('SELECT arme_id, objet_id FROM inventaire WHERE personnage_id = :personnage_id');
+  
+          $req->bindParam(':personnage_id', $id, PDO::PARAM_INT);
+          $req->execute();
+  
+          $donnees = $req->fetch(PDO::FETCH_ASSOC);
+          var_dump($donnees);
+          
+          // Check if the values are not null before using explode
+          $arme_id = isset($donnees['arme_id']) ? explode(',', $donnees['arme_id']) : [];
+          $objet_id = isset($donnees['objet_id']) ? explode(',', $donnees['objet_id']) : [];
+          
+          // Check if the values are not null before counting
+          $total_objets = count($arme_id) + count($objet_id);
+          return $total_objets;
+      } catch (Exception $e) {
+          die('Erreur lors de la récupération de la taille de l\'inventaire : ' . $e->getMessage());
+      }
+  }
+  
 
-            $req->bindParam(':id_joueur', $id, PDO::PARAM_INT);
-            $req->execute();
 
-            $donnees = $req->fetch(PDO::FETCH_ASSOC);
-            return $donnees['total_objets'];
-        } catch (Exception $e) {
-            die('Erreur lors de la recuperation de la taille de l\'inventaire : ' . $e->getMessage());
-        }
-    }
 
     // Get arme personnage by id
     public function getPersonnageArmeById($id)

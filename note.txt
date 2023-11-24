@@ -122,7 +122,7 @@ DOING :
 
 - marchands (Enzo)
 
-- check max objet dans l'inventaire and check if id arme is in inventory , check le niveau requis
+- check max objet dans l'inventaire (teo)
 
 - fonctionnalité des items (Téo)
 
@@ -147,3 +147,8 @@ En plus :
 - Equilibrage global du jeu (Enzo & Téo)
 
 - Affichage plus clean (Enzo & Téo)
+
+
+
+
+SELECT (COUNT(objet_id) + COUNT(arme_id)) AS total_objets FROM Inventaire WHERE personnage_id = 12;
